@@ -10,9 +10,9 @@ interface Item {
 }
 
 const ITEMS: Item[] = [
-  { id: 'sum', label: 'Have you summarised back to the patient?', sub: 'A short read-back of the story.' },
+  { id: 'sum', label: 'Have you summarised back to the pet parent?', sub: 'A short read-back of the story.' },
   { id: 'safe', label: 'Have you safety-netted?', sub: 'What to look for, when to come back.' },
-  { id: 'ice', label: 'Have you addressed their ideas, concerns, expectations?', sub: 'Did the patient feel heard?' },
+  { id: 'ice', label: 'Have you addressed their ideas, concerns, expectations?', sub: 'Did the owner feel heard?' },
 ];
 
 export function EndConfirmScreen() {

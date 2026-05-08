@@ -73,7 +73,7 @@ export function GPRoomScreen() {
 
       <div style={{ padding: '36px 36px 12px', textAlign: 'center' }}>
         <span className="chip butter" style={{ marginBottom: 12 }}>
-          🏥 GENERAL PRACTICE
+          🏥 SMALL ANIMAL CLINIC
         </span>
         <h1 style={{ fontSize: 42, lineHeight: 1.05, marginTop: 12 }}>How would you like to start?</h1>
         <div
@@ -86,7 +86,7 @@ export function GPRoomScreen() {
             margin: '8px auto 0',
           }}
         >
-          Pick a polyclinic and the next patient on the bench will walk straight in. Or browse the case folder.
+          Pick a veterinary service and the next pet parent on the bench will walk straight in. Or browse the case folder.
         </div>
       </div>
 
@@ -117,7 +117,7 @@ export function GPRoomScreen() {
                 textTransform: 'uppercase',
               }}
             >
-              Specialty
+              Service
             </span>
             <span>
               {CLINIC_ICON[activeClinic]} {CLINIC_LABELS[activeClinic]}
@@ -223,7 +223,7 @@ export function GPRoomScreen() {
             </div>
           </div>
           <h2 style={{ fontSize: 28, lineHeight: 1.1, textAlign: 'center', marginBottom: 8 }}>
-            Accept the next patient
+            Accept the next pet
           </h2>
           <div
             style={{
@@ -236,14 +236,14 @@ export function GPRoomScreen() {
             }}
           >
             {next
-              ? `${next.name} walks in next — straight into the consultation.`
+              ? `${next.name} and their owner walk in next — straight into the consultation.`
               : `No cases queued for ${CLINIC_LABELS[activeClinic]} yet.`}
           </div>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
             {next && (
               <>
                 <span className="chip" style={{ background: 'white' }}>
-                  {next.name.split(' ')[0]} · {next.age}
+                  {next.name.split(' ')[0]} · {next.species === 'dog' ? 'dog' : 'cat'} · {next.weightKg} kg
                 </span>
                 <span className="chip rose">{next.cond}</span>
               </>

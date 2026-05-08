@@ -1,0 +1,31 @@
+services:
+  - type: worker
+    name: vetkit-voice-worker
+    runtime: python
+    region: frankfurt
+    plan: starter
+    buildCommand: pip install -r backend/voice_agent_requirements.txt
+    startCommand: python backend/voice_agent.py start
+    autoDeployTrigger: commit
+    maxShutdownDelaySeconds: 60
+    envVars:
+      - key: LIVEKIT_URL
+        sync: false
+      - key: LIVEKIT_API_KEY
+        sync: false
+      - key: LIVEKIT_API_SECRET
+        sync: false
+      - key: DEEPGRAM_API_KEY
+        sync: false
+      - key: CARTESIA_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        value: openai/gpt-5.2
+      - key: OPENROUTER_VOICE_MODEL
+        value: openai/gpt-5.2
+      - key: OPENROUTER_APP_NAME
+        value: Vetkit
+      - key: OPENROUTER_SITE_URL
+        value: https://vetkit-alpha.vercel.app

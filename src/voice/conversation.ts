@@ -8,7 +8,7 @@
  * What changed inside:
  *   - No more browser Whisper / Kokoro / MediaRecorder. The mic streams
  *     over WebRTC into a LiveKit room; the Python voice agent worker
- *     does Deepgram STT → Claude Haiku 4.5 → Cartesia TTS and pipes the
+ *     does Deepgram STT → OpenRouter LLM → Cartesia TTS and pipes the
  *     audio back over the same room.
  *   - `init()` now connects the room (and starts the patient's greeting).
  *   - `startListening()` / `stopListeningAndRespond()` are no-ops kept
@@ -517,7 +517,7 @@ export class Conversation {
     } catch (err: any) {
       if (err?.name !== 'AbortError') {
         console.error('Text-chat LLM error:', err);
-        this.listeners.onError?.(`Claude failed: ${err?.message ?? err}`);
+        this.listeners.onError?.(`OpenRouter failed: ${err?.message ?? err}`);
         this.setStatus('ready');
         return;
       }

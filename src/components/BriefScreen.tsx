@@ -10,13 +10,24 @@ interface VitalCard {
   icon: string;
 }
 
-function buildVitals(p?: { hr: number; bp: string; spo2: number; temp: number; rr: number }): VitalCard[] {
+function buildVitals(p?: {
+  hr: number;
+  rr: number;
+  temp: number;
+  mmColor: string;
+  crtSec: number;
+  hydration: string;
+  painScore: number;
+  mentation: string;
+  bp?: string;
+  spo2?: number;
+}): VitalCard[] {
   return [
     { label: 'HR', value: String(p?.hr ?? 88), unit: 'bpm', color: 'var(--rose)', icon: '❤' },
-    { label: 'BP', value: p?.bp ?? '120/80', unit: 'mmHg', color: 'var(--peach)', icon: '⌥' },
-    { label: 'RR', value: String(p?.rr ?? 16), unit: '/min', color: 'var(--sky)', icon: '~' },
-    { label: 'SpO₂', value: String(p?.spo2 ?? 98), unit: '%', color: 'var(--mint)', icon: '○' },
-    { label: 'Temp', value: (p?.temp ?? 36.7).toFixed(1), unit: '°C', color: 'var(--butter)', icon: '☼' },
+    { label: 'RR', value: String(p?.rr ?? 24), unit: '/min', color: 'var(--sky)', icon: '~' },
+    { label: 'Temp', value: (p?.temp ?? 38.5).toFixed(1), unit: '°C', color: 'var(--butter)', icon: '☼' },
+    { label: 'CRT', value: String(p?.crtSec ?? 1.5), unit: 'sec', color: 'var(--mint)', icon: '○' },
+    { label: 'Pain', value: String(p?.painScore ?? 0), unit: '/10', color: 'var(--peach)', icon: '!' },
   ];
 }
 
@@ -28,6 +39,9 @@ export function BriefScreen() {
   const VITALS = buildVitals(patient?.vitals);
   const chiefComplaint = patient?.chiefComplaint ?? c.complaint;
   const arrivalBlurb = patient?.arrivalBlurb ?? 'Looks well. No acute distress.';
+  const animalSummary = patient
+    ? `${patient.species === 'dog' ? 'Dog' : 'Cat'} · ${patient.breed ?? 'Mixed breed'} · ${patient.weightKg} kg · ${patient.ownerName}'s pet`
+    : `${c.age} y · ${c.sex === 'F' ? 'Female' : 'Male'} · ${c.cond}`;
   const severityChip =
     patient?.severity === 'critical'
       ? { label: 'critical · resuscitate', tone: 'rose' }
@@ -83,7 +97,7 @@ export function BriefScreen() {
 
           <h1 style={{ fontSize: 32, lineHeight: 1.1, marginBottom: 4 }}>{c.name}</h1>
           <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--ink-2)', marginBottom: 16 }}>
-            {c.age} y · {c.sex === 'F' ? 'Female' : 'Male'} · {c.cond}
+            {animalSummary} · {c.cond}
           </div>
 
           <div
@@ -162,7 +176,7 @@ export function BriefScreen() {
             <ol style={{ margin: 0, paddingLeft: 18, fontSize: 14, fontWeight: 700, lineHeight: 1.5 }}>
               <li>Take a focused history</li>
               <li>Examine if appropriate</li>
-              <li>Agree a plan with the patient</li>
+              <li>Agree a plan with the pet parent</li>
             </ol>
           </div>
         </div>

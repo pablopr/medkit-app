@@ -9,6 +9,7 @@ import { useAttendingDebrief } from '../agents/useAttendingDebrief';
 import { buildDebriefRequest, summariseRequest } from '../agents/debriefRequest';
 import { saveEvalHistory, getEvalHistory, type EvalHistoryEntry } from '../data/evalHistory';
 import { POLYCLINIC_DIAGNOSIS_LABELS } from '../data/polyclinicPatients';
+import { estimateBarkibuSupport, type BarkibuSupportEstimate } from '../data/barkibuEstimate';
 import type {
   CaseEvaluationInput,
   CriterionResult,
@@ -117,6 +118,14 @@ function DomainRing({ label, score }: DomainRingProps) {
 
 function formatScore(n: number): string {
   return Number.isInteger(n) ? String(n) : n.toFixed(1);
+}
+
+function formatEuro(n: number): string {
+  return new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency: 'EUR',
+    maximumFractionDigits: Number.isInteger(n) ? 0 : 2,
+  }).format(n);
 }
 
 // ── Criterion — adapted to take CriterionResult + resolved cite ────
@@ -632,6 +641,7 @@ function EvaluationBody({ evaluation, patient, c }: BodyProps) {
   }
   const elapsedSec = patient.arrivedAt ? Math.round((Date.now() - patient.arrivedAt) / 1000) : 0;
   const elapsedLabel = `${Math.floor(elapsedSec / 60)} min ${elapsedSec % 60} sec`;
+  const barkibuEstimate = estimateBarkibuSupport(patient);
 
   return (
     <>
@@ -782,6 +792,8 @@ function EvaluationBody({ evaluation, patient, c }: BodyProps) {
         <ActionChips patient={patient} c={c} />
       </div>
 
+      <BarkibuEstimateCard estimate={barkibuEstimate} />
+
       <div
         className="plush"
         style={{
@@ -800,6 +812,110 @@ function EvaluationBody({ evaluation, patient, c }: BodyProps) {
         </div>
       </div>
     </>
+  );
+}
+
+function BarkibuEstimateCard({ estimate }: { estimate: BarkibuSupportEstimate }) {
+  const visibleItems = estimate.lineItems.slice(0, 7);
+  const hiddenCount = estimate.lineItems.length - visibleItems.length;
+
+  return (
+    <div
+      className="plush-lg popin"
+      style={{
+        padding: 18,
+        marginBottom: 22,
+        background: 'var(--sky)',
+        border: '3px solid var(--line)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 18 }}>
+        <div style={{ flex: 1 }}>
+          <div className="chip butter" style={{ marginBottom: 10 }}>
+            BARKIBU COST VIEW
+          </div>
+          <h2 style={{ margin: '0 0 6px', fontSize: 24, lineHeight: 1.1 }}>
+            Barkibu can help with the veterinary bill
+          </h2>
+          <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink-2)', lineHeight: 1.45 }}>
+            This simulation applies an 80% reimbursement estimate to the actions you took, so the owner sees how insurance can reduce the surprise of animal healthcare costs.
+          </div>
+        </div>
+        <div
+          className="plush"
+          style={{
+            background: 'white',
+            padding: 14,
+            minWidth: 220,
+            display: 'grid',
+            gap: 8,
+          }}
+        >
+          <MoneyRow label="Estimated bill" value={estimate.subtotal} />
+          <MoneyRow label="Barkibu estimate" value={-estimate.estimatedCoveredAmount} tone="var(--mint-deep)" />
+          <div style={{ height: 2, background: 'var(--line)', opacity: 0.25 }} />
+          <MoneyRow label="Owner pays" value={estimate.estimatedOwnerCost} strong />
+        </div>
+      </div>
+
+      <div
+        style={{
+          marginTop: 14,
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: 8,
+        }}
+      >
+        {visibleItems.map((item) => (
+          <div
+            key={item.id}
+            className="plush"
+            style={{
+              background: 'white',
+              padding: '8px 10px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              gap: 10,
+              fontSize: 12,
+              fontWeight: 800,
+            }}
+          >
+            <span>{item.label}</span>
+            <span style={{ whiteSpace: 'nowrap' }}>{formatEuro(item.amount)}</span>
+          </div>
+        ))}
+        {hiddenCount > 0 && (
+          <div className="plush" style={{ background: 'white', padding: '8px 10px', fontSize: 12, fontWeight: 800 }}>
+            +{hiddenCount} more line item{hiddenCount === 1 ? '' : 's'}
+          </div>
+        )}
+      </div>
+
+      <div style={{ marginTop: 12, fontSize: 11, fontWeight: 700, color: 'var(--ink-2)', lineHeight: 1.45 }}>
+        {estimate.disclaimer}
+      </div>
+    </div>
+  );
+}
+
+function MoneyRow({
+  label,
+  value,
+  strong = false,
+  tone = 'var(--ink)',
+}: {
+  label: string;
+  value: number;
+  strong?: boolean;
+  tone?: string;
+}) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline' }}>
+      <span style={{ fontSize: 12, fontWeight: strong ? 900 : 800, color: 'var(--ink-2)' }}>{label}</span>
+      <span style={{ fontSize: strong ? 20 : 15, fontWeight: 900, color: tone }}>
+        {value < 0 ? `-${formatEuro(Math.abs(value))}` : formatEuro(value)}
+      </span>
+    </div>
   );
 }
 

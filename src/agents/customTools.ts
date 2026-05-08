@@ -1,9 +1,8 @@
-// Custom tools exposed to the `medkit-attending` Managed Agent.
+// Custom-tool payloads emitted by the vetkit-attending grader.
 //
-// The agent-side tool definitions live in `backend/server.py` as
-// `MEDKIT_CUSTOM_TOOLS` (JSON Schema, sent to `agents.create`). This file is
-// the browser-side twin: a Zod schema per tool, used to validate the
-// `input` of every `agent.custom_tool_use` event before we render it.
+// The server-side JSON Schemas live in `backend/server.py` as
+// `MEDKIT_CUSTOM_TOOLS`. This file is the browser-side twin: a Zod schema per
+// payload, used to validate the debrief response before we render it.
 //
 // If you change a schema here, update `MEDKIT_CUSTOM_TOOLS` in
 // `backend/server.py` too. They must match.
@@ -27,8 +26,8 @@ export type CustomToolName = (typeof CUSTOM_TOOL_NAMES)[number];
 // on a user decision — the renderer shows an approve/decline UI and the
 // caller's click decides the result payload.
 //
-// Custom tools don't go through Anthropic's permission-policy gate (that
-// covers native + MCP tools), so this is a frontend-enforced layer.
+// Kept for legacy renderer flows; the current debrief endpoint returns a
+// single validated payload rather than a live tool stream.
 export const CUSTOM_TOOL_PERMISSIONS = {
   render_vitals_chart: 'auto',
   render_bed_map: 'auto',

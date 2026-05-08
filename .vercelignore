@@ -1,0 +1,11 @@
+backend/.venv/
+backend/.venv-voice/
+backend/**/__pycache__/
+.venv/
+.venv-voice/
+node_modules/
+dist/
+.vite/
+*.log
+.DS_Store
+.git/

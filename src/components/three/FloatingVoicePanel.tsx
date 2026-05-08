@@ -149,7 +149,7 @@ export function FloatingVoicePanel({
           <div style={{ fontSize: 14, fontWeight: 900, letterSpacing: '-0.01em' }}>
             {patient.case.name}
             <span style={{ fontSize: 11, color: 'var(--ink-soft)', marginLeft: 6, fontWeight: 700 }}>
-              {patient.case.age}{patient.case.gender}
+              {patient.case.species === 'dog' ? 'dog' : 'cat'} · {patient.case.weightKg} kg · owner {patient.case.ownerName}
             </span>
           </div>
           <div

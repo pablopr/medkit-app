@@ -1,25 +1,16 @@
 import type { Treatment } from '../game/types';
 
 export const TREATMENTS: Treatment[] = [
-  { id: 'aspirin', name: 'Aspirin 325mg PO', category: 'medication' },
-  { id: 'nitro', name: 'Nitroglycerin SL', category: 'medication' },
-  { id: 'heparin', name: 'Heparin drip', category: 'medication' },
-  { id: 'cath-lab', name: 'Activate cath lab', category: 'procedure' },
-  { id: 'tpa', name: 'tPA (alteplase)', category: 'medication' },
-  { id: 'epi-im', name: 'Epinephrine 0.3mg IM', category: 'medication' },
-  { id: 'antihistamine', name: 'Diphenhydramine IV', category: 'medication' },
-  { id: 'steroids-iv', name: 'Methylprednisolone IV', category: 'medication' },
-  { id: 'neb-albuterol', name: 'Nebulized albuterol', category: 'medication' },
-  { id: 'o2', name: 'Supplemental O2', category: 'procedure' },
-  { id: 'iv-fluids', name: 'IV fluids (NS bolus)', category: 'procedure' },
-  { id: 'abx-broad', name: 'Broad-spectrum antibiotics', category: 'medication' },
-  { id: 'analgesia', name: 'Analgesia (morphine)', category: 'medication' },
-  { id: 'ondansetron', name: 'Ondansetron 4mg IV', category: 'medication' },
-  { id: 'surgery-consult', name: 'Surgery consult', category: 'disposition' },
-  { id: 'admit-icu', name: 'Admit to ICU', category: 'disposition' },
-  { id: 'admit-floor', name: 'Admit to floor', category: 'disposition' },
-  { id: 'observe', name: 'Observation unit', category: 'disposition' },
-  { id: 'discharge', name: 'Discharge home', category: 'disposition' },
+  { id: 'vet-iv-catheter', name: 'Place IV catheter', category: 'procedure' },
+  { id: 'vet-iv-fluids', name: 'IV crystalloid fluids', category: 'procedure' },
+  { id: 'vet-oxygen', name: 'Oxygen support', category: 'procedure' },
+  { id: 'vet-antiemetic', name: 'Antiemetic injection', category: 'medication' },
+  { id: 'vet-analgesia', name: 'Opioid analgesia', category: 'medication' },
+  { id: 'vet-urinary-catheter', name: 'Urethral catheterization', category: 'procedure' },
+  { id: 'vet-decontamination', name: 'Toxin decontamination plan', category: 'procedure' },
+  { id: 'vet-hospitalize', name: 'Hospitalize / transfer to emergency care', category: 'disposition' },
+  { id: 'vet-discharge', name: 'Discharge with owner instructions', category: 'disposition' },
+  { id: 'vet-recheck', name: 'Schedule veterinary recheck', category: 'disposition' },
 ];
 
 export const treatmentById = (id: string) => TREATMENTS.find((t) => t.id === id);

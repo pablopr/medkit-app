@@ -3,6 +3,93 @@
 // result toast when the player expands the result.
 
 export const DEFAULT_RESULTS: Record<string, string> = {
+  'vet-physical-exam': `VETERINARY PHYSICAL EXAM
+General exam completed.
+No major abnormality beyond case-specific findings.`,
+
+  'vet-pain-score': `PAIN SCORE + MENTATION
+Pain score: 0-1/10
+Mentation: bright, alert, responsive.`,
+
+  'vet-bcs': `BODY CONDITION SCORE
+BCS: 5/9
+Muscle condition: adequate.`,
+
+  'vet-bp': `DOPPLER BLOOD PRESSURE
+Systolic pressure: 125 mmHg
+Interpretation: Within expected range for a calm small animal patient.`,
+
+  'vet-glucose': `POINT-OF-CARE GLUCOSE
+Glucose: 96 mg/dL
+Interpretation: Euglycemic.`,
+
+  'vet-ecg': `ECG RHYTHM STRIP
+Sinus rhythm.
+No sustained arrhythmia seen on this short strip.`,
+
+  'vet-pocus-bladder': `POCUS BLADDER CHECK
+Urinary bladder small to moderate.
+No emergency distension seen.`,
+
+  'vet-flea-comb': `FLEA COMB EXAM
+No live fleas or flea dirt seen.`,
+
+  'vet-ear-cytology': `EAR CYTOLOGY
+Low numbers of mixed flora.
+No marked yeast or bacterial overgrowth.`,
+
+  'vet-skin-cytology': `SKIN CYTOLOGY
+Occasional cocci.
+No marked inflammatory or yeast overgrowth.`,
+
+  'vet-cbc': `CBC WITH DIFFERENTIAL
+RBC, WBC, and platelet values within expected reference intervals.
+No major inflammatory leukogram.`,
+
+  'vet-chem': `SERUM CHEMISTRY
+Renal, hepatic, glucose, protein, and electrolyte screen within expected limits.`,
+
+  'vet-electrolytes': `ELECTROLYTES
+Na, K, and Cl within expected limits.`,
+
+  'vet-urinalysis': `URINALYSIS + SEDIMENT
+USG appropriate.
+No glucosuria, ketonuria, active sediment, or bacteriuria.`,
+
+  'vet-urine-culture': `URINE CULTURE
+No growth on preliminary culture.`,
+
+  'vet-fructosamine': `FRUCTOSAMINE
+Within expected reference interval.
+No evidence of persistent hyperglycemia.`,
+
+  'vet-tt4': `TOTAL T4
+Within expected reference interval.`,
+
+  'vet-ntprobnp': `NT-PROBNP
+Within expected reference interval for the species and clinical context.`,
+
+  'vet-fecal': `FECAL PARASITE SCREEN
+No ova, cysts, or Giardia antigen detected.`,
+
+  'vet-parvo-snap': `PARVOVIRUS SNAP TEST
+Negative.`,
+
+  'vet-thoracic-rads': `THORACIC RADIOGRAPHS
+No pulmonary edema, pneumonia pattern, pleural effusion, or obvious mass.`,
+
+  'vet-abdominal-rads': `ABDOMINAL RADIOGRAPHS
+No obstructive gas pattern, free abdominal gas, or radiopaque foreign body.`,
+
+  'vet-abdominal-us': `ABDOMINAL ULTRASOUND
+No major sonographic abnormality identified on screening study.`,
+
+  'vet-echo': `ECHOCARDIOGRAPHY
+No major structural heart disease identified on this screening study.`,
+
+  'vet-orthopedic-rads': `ORTHOPEDIC RADIOGRAPHS
+No fracture or luxation identified.`,
+
   // ───────── Bedside ─────────
   glucose: `FINGERSTICK GLUCOSE
 Value: 102 mg/dL

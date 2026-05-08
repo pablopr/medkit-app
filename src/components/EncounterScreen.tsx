@@ -445,7 +445,7 @@ export function EncounterScreen() {
         <>
           <DockedVoicePanel
             patientName={patient.case.name}
-            patientLabel={`${patient.case.age}${patient.case.gender}`}
+            patientLabel={`${patient.case.species === 'dog' ? 'dog' : 'cat'} · ${patient.case.weightKg} kg · owner ${patient.case.ownerName}`}
           />
           <ExamineOverlay
             onClose={() => setExamineOpen(false)}

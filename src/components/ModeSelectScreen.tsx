@@ -199,12 +199,12 @@ export function ModeSelectScreen() {
           }}
         >
           <Door
-            label="Polyclinics"
-            sub="Outpatient — choose a specialty"
+            label="Vet Clinic"
+            sub="Small animal consultations"
             color="var(--mint)"
             doorColor="#5FCFA0"
             available
-            tags={['Open now', '24 specialties']}
+            tags={['Open now', 'dogs & cats']}
             onOpen={() => store.setScreen('gpRoom')}
           />
           <Door
@@ -217,7 +217,7 @@ export function ModeSelectScreen() {
           />
           <Door
             label="Emergency"
-            sub="ED triage & resus"
+            sub="Urgent vet triage"
             color="var(--rose)"
             doorColor="#F47A92"
             locked

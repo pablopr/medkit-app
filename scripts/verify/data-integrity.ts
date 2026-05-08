@@ -7,6 +7,7 @@
  * - Every PatientCase.acceptableTreatmentIds / criticalTreatmentIds exists in TREATMENTS.
  * - criticalTreatmentIds ⊆ acceptableTreatmentIds.
  * - correctDiagnosisId is included in diagnosisOptions.
+ * - Every veterinary case has species, owner, weight, and veterinary vitals.
  * - All PatientCase IDs are unique (across ER + every clinic).
  * - Medication.indications reference diagnoses that at least one case has as correctDiagnosisId.
  */
@@ -86,6 +87,35 @@ export function verifyDataIntegrity(): Violation[] {
         case: c.id,
         rule: 'correctDiagnosisId not in diagnosisOptions',
         detail: c.correctDiagnosisId,
+      });
+    }
+
+    if (c.species !== 'dog' && c.species !== 'cat') {
+      violations.push({
+        case: c.id,
+        rule: 'species must be dog or cat',
+        detail: String(c.species),
+      });
+    }
+    if (!c.ownerName.trim()) {
+      violations.push({
+        case: c.id,
+        rule: 'ownerName missing',
+        detail: '',
+      });
+    }
+    if (!(c.weightKg > 0)) {
+      violations.push({
+        case: c.id,
+        rule: 'weightKg must be positive',
+        detail: String(c.weightKg),
+      });
+    }
+    if (!c.vitals.mmColor || !c.vitals.hydration || !c.vitals.mentation) {
+      violations.push({
+        case: c.id,
+        rule: 'veterinary vitals missing',
+        detail: 'mmColor, hydration, and mentation are required',
       });
     }
   }

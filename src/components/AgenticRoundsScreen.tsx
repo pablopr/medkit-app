@@ -123,11 +123,11 @@ const NODES: NodeDef[] = [
     w: 210,
     h: 180,
     title: 'Voice stack',
-    subtitle: 'LiveKit + Deepgram STT · Cartesia TTS · Haiku 4.5 patient persona.',
+    subtitle: 'LiveKit + Deepgram STT · OpenRouter LLM · Cartesia TTS.',
     badge: 'real-time',
     doodle: 'spark',
     details: {
-      what: 'Real-time pipeline that turns the trainee\'s spoken words into a patient reply spoken back out loud. Sub-1s perceived latency. The patient persona is a Haiku 4.5 system prompt assembled from the case\'s hidden facts + planted cues.',
+      what: 'Real-time pipeline that turns the trainee\'s spoken words into a patient reply spoken back out loud. The patient persona is an OpenRouter model call assembled from the case\'s hidden facts + planted cues.',
       files: [
         { path: 'backend/voice_agent.py', label: 'LiveKit Agents worker' },
         { path: 'src/voice/patientPersona.ts', label: 'persona prompt builder' },
@@ -184,12 +184,12 @@ const NODES: NodeDef[] = [
     y: 170,
     w: 220,
     h: 180,
-    title: 'medkit-attending',
-    subtitle: 'Claude Managed Agent · Opus 4.7 · DEBRIEF MODE.',
-    badge: 'Opus 4.7',
+    title: 'vetkit-attending',
+    subtitle: 'OpenRouter · structured debrief JSON · DEBRIEF MODE.',
+    badge: 'OpenRouter',
     doodle: 'star',
     details: {
-      what: 'The senior clinician of the simulator. Lives on Anthropic\'s Managed Agents platform, versioned. In DEBRIEF MODE, reads the rubric + registry slice + encounter log, scores three domains (data_gathering, clinical_management, interpersonal), flags safety_breach when warranted, and emits exactly one render_case_evaluation tool use.',
+      what: 'The senior clinician of the simulator. Runs through the FastAPI OpenRouter endpoint. In DEBRIEF MODE, reads the rubric + registry slice + encounter log, scores three domains (data_gathering, clinical_management, interpersonal), flags safety_breach when warranted, and returns exactly one render_case_evaluation payload.',
       files: [
         { path: 'backend/server.py', label: 'MEDKIT_ATTENDING_SYSTEM_PROMPT + MEDKIT_CUSTOM_TOOLS' },
         { path: 'src/agents/customTools.ts', label: 'Zod mirror of the tool schema' },
@@ -206,7 +206,7 @@ const NODES: NodeDef[] = [
         'node scripts/verify/live-debrief.ts',
       ],
       liveCounts: [
-        { label: 'model', value: 'claude-opus-4-7' },
+        { label: 'model', value: 'OPENROUTER_GRADER_MODEL' },
         { label: 'custom tools', value: '7 (incl. render_case_evaluation)' },
       ],
     },
@@ -528,7 +528,7 @@ function GradingTab() {
   return (
     <>
       <p style={{ fontSize: 15, lineHeight: 1.55, fontWeight: 600, color: 'var(--ink-2)', maxWidth: 880, marginBottom: 22 }}>
-        Two flows wrap around one Managed Agent. <strong>Run-time</strong> is
+        Two flows wrap around one OpenRouter-backed grader. <strong>Run-time</strong> is
         what happens during the encounter — voice, actions, debrief.
         <strong> Authoring</strong> is offline — society guidelines flow into a
         citation registry that the run-time agent must cite from. Click any
@@ -1382,16 +1382,16 @@ function CaseFieldGroup({
 }
 
 // ────────────────────────────────────────────────────────────────────
-// AGENT TAB — medkit-attending Managed Agent deep-dive
+// AGENT TAB — vetkit-attending OpenRouter deep-dive
 // ────────────────────────────────────────────────────────────────────
 
 const PRIMITIVES = [
-  { name: 'Agent',            role: "Versioned definition on Anthropic's platform — system prompt + custom tool schemas. Bumped via /agent/refresh. Currently v5." },
-  { name: 'Environment',      role: 'Cloud container the agent runs in. Network egress restricted to Anthropic + huggingface.co; scratch I/O at /workspace.' },
-  { name: 'Session',          role: "Per-trainee, per-shift. Lives up to 30 min idle. Stateful across the trainee's actions. Idle sessions are free to keep open." },
-  { name: 'Custom tools',     role: 'Schema-defined client-side tools. The agent emits a tool use, the browser renders or executes, the result goes back. Seven defined.' },
-  { name: 'Permission policies', role: "Per-tool: auto-allow reads, confirm writes. Frontend-enforced for custom tools (Anthropic's gate covers native + MCP only)." },
-  { name: 'Credential vault', role: 'EHR_API_TOKEN never enters the model context. The agent calls lookup_ehr_history; the backend attaches the token server-side.' },
+  { name: 'Prompt',           role: 'System prompt + JSON Schema live in backend/server.py and are served through /agent/debrief/evaluate.' },
+  { name: 'Model routing',    role: 'OPENROUTER_GRADER_MODEL, OPENROUTER_PATIENT_MODEL, OPENROUTER_TRIAGE_MODEL, and OPENROUTER_VOICE_MODEL can be changed independently.' },
+  { name: 'Request payload',  role: "Per-trainee encounter state is packaged as rubric + registry slice + encounter log when the consultation ends." },
+  { name: 'Structured output', role: 'The backend requests render_case_evaluation-shaped JSON and the browser validates it with Zod before rendering.' },
+  { name: 'Safety policy',    role: 'The prompt forbids real clinical advice and prevents invented Barkibu coverage or policy terms.' },
+  { name: 'Credential vault', role: 'EHR_API_TOKEN never enters the model context. The backend attaches the token server-side for vault lookups.' },
 ];
 
 const TWO_MODES = [
@@ -1414,7 +1414,7 @@ const TWO_MODES = [
       'Trigger: a [debrief request] message containing rubric + registry slice + encounter log.',
       'Scores three domains (data_gathering, clinical_management, interpersonal) against the rubric.',
       'Writes 1–3 highlights, 1–3 priority improvements, and a spoken-aloud narrative.',
-      'Emits exactly one render_case_evaluation tool use, then stops.',
+      'Returns exactly one render_case_evaluation payload, then stops.',
     ],
   },
 ];
@@ -1453,10 +1453,10 @@ const HARD_RULES = [
 ];
 
 const SKILLS_AROUND = [
-  { name: 'medkit-attending-debrief',   role: "Reference for the live agent's DEBRIEF MODE contract — files, hard rules, smoke tests." },
+  { name: 'medkit-attending-debrief',   role: "Reference for the live grader's DEBRIEF MODE contract — files, hard rules, smoke tests." },
   { name: 'medkit-guideline-curator',   role: 'Fills / refreshes the registry from authoritative sources. Designed for /loop 7d.' },
   { name: 'medkit-rubric-author',       role: 'Authors a CaseRubric per case with citation discipline.' },
-  { name: 'medkit-managed-agent-setup', role: 'Bootstrap, refresh, custom-tool maintenance.' },
+  { name: 'openrouter-setup',           role: 'Environment variables, model routing, and structured-output maintenance.' },
   { name: 'medkit-patient-generator',   role: 'Authors new PatientCase entries from condition + variant brief.' },
 ];
 
@@ -1473,35 +1473,35 @@ function AgentTab() {
         }}
       >
         <div className="chip butter" style={{ position: 'absolute', top: -12, left: 22, fontSize: 12 }}>
-          MANAGED AGENT
+          OPENROUTER GRADER
         </div>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18, flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: 240 }}>
             <h2 style={{ fontSize: 32, lineHeight: 1.05, margin: '4px 0 8px' }}>
-              medkit-attending
+              vetkit-attending
             </h2>
             <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink-2)' }}>
-              Claude Managed Agent · Opus 4.7 · two modes (observing + debriefing)
+              OpenRouter · structured JSON · debriefing
             </div>
             <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', lineHeight: 1.55, marginTop: 10 }}>
-              The senior clinician of the simulator. One agent observes the
-              entire encounter and grades it at the end. Citation discipline
-              is enforced at the system-prompt level — the agent literally
+              The senior clinician of the simulator grades the encounter at
+              the end. Citation discipline is enforced at the system-prompt
+              level — the model
               cannot fabricate a NICE / ESC / AHA recommendation, because
               it&apos;s told to drop any criterion whose recId isn&apos;t in
               the registry slice it was given.
             </p>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 220 }}>
-            <SmallStat label="model" value="claude-opus-4-7" />
+            <SmallStat label="model" value="OPENROUTER_GRADER_MODEL" />
             <SmallStat label="custom tools" value={`${TOOLS.length} (1 confirm-gated)`} />
             <SmallStat label="modes" value="observing + DEBRIEF MODE" />
-            <SmallStat label="deploy" value="POST /agent/refresh" />
+            <SmallStat label="endpoint" value="POST /agent/debrief/evaluate" />
           </div>
         </div>
       </div>
 
-      <Card title="Anthropic Managed Agents primitives we use">
+      <Card title="OpenRouter debrief primitives we use">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 }}>
           {PRIMITIVES.map((p) => (
             <div key={p.name} style={{
@@ -1589,7 +1589,7 @@ function AgentTab() {
         </div>
       </Card>
 
-      <Card title="Skills composed around the agent (.claude/skills/*)">
+      <Card title="Reference skills and data contracts (.claude/skills/*)">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {SKILLS_AROUND.map((s) => (
             <div key={s.name} style={{

@@ -92,6 +92,7 @@ export function BackgroundMusic() {
   return (
     <button
       type="button"
+      className="music-toggle"
       onClick={toggle}
       title={
         userMuted

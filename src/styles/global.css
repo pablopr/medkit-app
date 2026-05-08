@@ -212,6 +212,37 @@ body {
 .breadcrumb .sep { opacity: 0.4; }
 .breadcrumb .here { color: var(--ink); background: var(--butter); padding: 4px 10px; border-radius: var(--r-pill); border: 2.5px solid var(--line); box-shadow: 0 2px 0 var(--line); }
 
+@media (max-width: 720px) {
+  .topbar {
+    padding: 12px 14px !important;
+    gap: 10px;
+  }
+  .topbar .breadcrumb {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+  }
+  .topbar .breadcrumb span {
+    display: none;
+  }
+  .topbar .breadcrumb .here {
+    display: inline-flex;
+    max-width: 130px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 12px;
+    padding: 4px 9px;
+  }
+  .topbar-profile-name {
+    display: none;
+  }
+  .music-toggle {
+    right: 62px !important;
+    top: 16px !important;
+  }
+}
+
 /* utility: stripe placeholder for "imagery goes here" */
 .stripes {
   background: repeating-linear-gradient(

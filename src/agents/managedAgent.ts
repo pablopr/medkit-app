@@ -1,8 +1,8 @@
 /**
- * Browser-side client for the Managed Agent (`medkit-attending`).
+ * Legacy browser-side client for the former managed-agent session flow.
  *
- * Talks to the FastAPI proxy at `/agent/*` — never directly to Anthropic.
- * The Anthropic API key lives server-side only.
+ * The current debrief flow uses `/agent/debrief/evaluate` instead. These
+ * helpers remain for older debug panels and compatibility stubs.
  *
  * Responsibilities:
  *   - bootstrap()           — one-time create of the agent + environment,
@@ -15,8 +15,6 @@
  *                             reconnect+dedupe pattern from
  *                             `shared/managed-agents-client-patterns.md`.
  *
- * TODO: verify event/field shapes against
- * https://platform.claude.com/docs/en/managed-agents/ before submission.
  */
 
 const AGENT_BASE = '/agent';

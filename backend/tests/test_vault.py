@@ -24,10 +24,10 @@ import unittest
 from pathlib import Path
 
 # Stub required env BEFORE importing server — it otherwise refuses to
-# boot some paths. The ANTHROPIC_API_KEY value is a dummy; we never
-# call Anthropic in these tests.
+# boot some paths. The OpenRouter key value is a dummy; these tests never
+# call OpenRouter.
 os.environ["EHR_API_TOKEN"] = "vault-secret-test-token-93af2d"
-os.environ.setdefault("ANTHROPIC_API_KEY", "sk-ant-api03-test-dummy")
+os.environ.setdefault("OPENROUTER_API_KEY", "sk-or-test-dummy")
 
 # Make ``backend/`` importable whether unittest is launched from the
 # repo root or from inside ``backend/``.
@@ -46,6 +46,7 @@ _VAULT_TOKEN = os.environ["EHR_API_TOKEN"]
 class VaultEndpointTests(unittest.TestCase):
     def setUp(self) -> None:
         self.client = TestClient(server.app)
+        self.client.headers.update({"Origin": "http://localhost:5173"})
 
     # ─── happy path ──────────────────────────────────────────────
     def test_known_patient_returns_record(self) -> None:

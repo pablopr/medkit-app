@@ -1,6 +1,6 @@
-"""End-to-end smoke test for the ER backend.
+"""End-to-end smoke test for the Vetkit backend.
 
-Run this before a demo to confirm the Managed Agents pipeline is alive.
+Run this before a demo to confirm the OpenRouter-era backend is alive.
 It exercises every endpoint the browser uses, in order, and prints a
 concise PASS/FAIL per step so you can spot a regression in seconds.
 
@@ -9,19 +9,16 @@ Usage:
     backend/.venv/Scripts/python.exe backend/smoke_test.py
 
 Exits 0 if every step passes, 1 otherwise. Safe to run repeatedly; it
-does not mutate persistent state (creates a throwaway session that will
-idle out for free).
+does not hit the OpenRouter API; it only checks local route wiring.
 """
 
 from __future__ import annotations
 
 import json
 import sys
-import time
 import urllib.error
 import urllib.request
 from typing import Any, Optional
-from urllib.parse import urlencode
 
 BASE = "http://127.0.0.1:8787"
 TIMEOUT = 20.0
@@ -50,43 +47,6 @@ def _request(
         return status, json.loads(payload)
     except ValueError:
         return status, payload
-
-
-def _stream(path: str, seconds: float = 10.0) -> list[dict]:
-    """Open the SSE stream and collect events for N seconds, then close."""
-    url = f"{BASE}{path}"
-    events: list[dict] = []
-    deadline = time.monotonic() + seconds
-    req = urllib.request.Request(url)
-    try:
-        with urllib.request.urlopen(req, timeout=seconds + 5) as resp:
-            cur_event: Optional[str] = None
-            cur_data: list[str] = []
-            while time.monotonic() < deadline:
-                line = resp.readline().decode("utf-8", errors="replace")
-                if not line:
-                    break
-                line = line.rstrip("\n")
-                if line.startswith(":"):
-                    continue  # comment / keepalive
-                if line == "":
-                    if cur_event and cur_data:
-                        try:
-                            events.append(
-                                {"type": cur_event, "payload": json.loads("".join(cur_data))}
-                            )
-                        except ValueError:
-                            events.append({"type": cur_event, "payload": "".join(cur_data)})
-                    cur_event = None
-                    cur_data = []
-                    continue
-                if line.startswith("event:"):
-                    cur_event = line[len("event:"):].strip()
-                elif line.startswith("data:"):
-                    cur_data.append(line[len("data:"):].lstrip())
-    except Exception as e:
-        events.append({"type": "transport_error", "payload": str(e)})
-    return events
 
 
 class Reporter:
@@ -118,19 +78,14 @@ def main() -> int:
     if isinstance(body, dict):
         agent = body.get("agent") or {}
         r.check(
-            "health: anthropic SDK installed",
-            bool(agent.get("anthropic_sdk_installed")),
-            "install anthropic>=0.88.0 in backend venv",
+            "health: provider is OpenRouter",
+            agent.get("provider") == "openrouter",
+            agent,
         )
         r.check(
-            "health: ANTHROPIC_API_KEY configured",
+            "health: OPENROUTER_API_KEY configured",
             bool(agent.get("api_key_configured")),
-            "set ANTHROPIC_API_KEY in backend/.env.local",
-        )
-        r.check(
-            "health: agent bootstrapped",
-            bool(agent.get("bootstrapped")),
-            "run /agent/bootstrap and persist IDs to backend/.env.local",
+            "set OPENROUTER_API_KEY in backend/.env.local",
         )
     else:
         r.check("health body parses as JSON", False, body)
@@ -141,9 +96,9 @@ def main() -> int:
     r.check("POST /agent/bootstrap returns 200", status == 200, f"status={status} body={body}")
     if isinstance(body, dict):
         r.check(
-            "bootstrap: created=false (cached IDs used)",
+            "bootstrap: compatibility no-op",
             body.get("created") is False,
-            f"got {body.get('created')!r} — indicates a new agent was created",
+            f"got {body.get('created')!r}",
         )
 
     # ─── 3. /agent/sessions (create) ───────────────────────────────
@@ -160,19 +115,7 @@ def main() -> int:
     status, body = _request("GET", f"/agent/sessions/{session_id}")
     r.check("GET /agent/sessions/{id} returns 200", status == 200, f"status={status}")
 
-    # ─── 5. /agent/sessions/{id}/events (send + stream) ────────────
-    # Spawn the stream in a background thread, then send a message.
-    import threading
-
-    events_collected: list[dict] = []
-
-    def stream_worker() -> None:
-        events_collected.extend(_stream(f"/agent/sessions/{session_id}/stream", seconds=25))
-
-    t = threading.Thread(target=stream_worker, daemon=True)
-    t.start()
-    time.sleep(0.5)  # let stream open
-
+    # ─── 5. /agent/sessions/{id}/events (compat send) ──────────────
     status, body = _request(
         "POST",
         f"/agent/sessions/{session_id}/events",
@@ -184,10 +127,8 @@ def main() -> int:
                         {
                             "type": "text",
                             "text": (
-                                "[ER arrival] patient 62M severity=critical. "
-                                "HR 104 BP 152/94 SpO2 95 RR 22. ST elevation "
-                                "on ECG, crushing chest pain. Emit "
-                                "render_triage_badge."
+                                "[vet arrival] dog severity=urgent. "
+                                "HR 144 RR 32 temp 39.2. Emit nothing."
                             ),
                         }
                     ],
@@ -197,37 +138,14 @@ def main() -> int:
     )
     r.check("POST /events returns 200", status == 200, f"status={status} body={body}")
 
-    t.join(timeout=30)
-
-    # What arrived on the stream?
-    type_counts: dict[str, int] = {}
-    for ev in events_collected:
-        type_counts[ev["type"]] = type_counts.get(ev["type"], 0) + 1
-
-    r.check(
-        "stream: session.status_running observed",
-        type_counts.get("session.status_running", 0) >= 1,
-        f"types seen: {type_counts}",
-    )
-    r.check(
-        "stream: agent.custom_tool_use observed",
-        type_counts.get("agent.custom_tool_use", 0) >= 1,
-        f"agent did not emit a custom tool. types seen: {type_counts}",
-    )
-    r.check(
-        "stream: session.status_idle observed",
-        type_counts.get("session.status_idle", 0) >= 1,
-        f"types seen: {type_counts}",
-    )
-
     # ─── 6. /agent/sessions/{id}/events (list) ─────────────────────
     status, body = _request("GET", f"/agent/sessions/{session_id}/events?limit=50")
     r.check("GET /events (list) returns 200", status == 200, f"status={status}")
     if isinstance(body, dict):
         data = body.get("data") or []
         r.check(
-            "list: returned at least one event",
-            len(data) >= 1,
+            "list: compatibility history is empty",
+            len(data) == 0,
             f"got {len(data)} events",
         )
 

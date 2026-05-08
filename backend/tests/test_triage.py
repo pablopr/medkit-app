@@ -1,10 +1,10 @@
 """Unit tests for the direct-inference triage classifier.
 
-These tests mock the Anthropic SDK so we can validate the code path
+These tests mock the OpenRouter HTTP boundary so we can validate the code path
 without hitting the API (and without needing a real key). Assertions:
 
-    1. The Anthropic client is called with model=claude-opus-4-7.
-    2. The ESI-rules system prompt is passed in the 'system' field.
+    1. The OpenRouter call uses the configured triage model.
+    2. The ESI-rules system prompt is passed as a system message.
     3. Well-formed JSON responses parse into a TriageClassifyResponse.
     4. Malformed / fenced JSON is parsed when possible, otherwise 502.
     5. Invalid esi_level values are rejected as 502 rather than silently
@@ -12,7 +12,7 @@ without hitting the API (and without needing a real key). Assertions:
 
 Run with:
 
-    backend/.venv/Scripts/python.exe -m unittest backend.tests.test_triage
+    backend/.venv/bin/python -m unittest backend.tests.test_triage
 """
 
 from __future__ import annotations
@@ -22,10 +22,9 @@ import os
 import sys
 import unittest
 from pathlib import Path
-from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-os.environ.setdefault("ANTHROPIC_API_KEY", "sk-ant-api03-test-dummy")
+os.environ.setdefault("OPENROUTER_API_KEY", "sk-or-test-dummy")
 os.environ.setdefault("EHR_API_TOKEN", "test-token-not-relevant-here")
 
 _BACKEND_DIR = Path(__file__).resolve().parents[1]
@@ -38,48 +37,42 @@ from fastapi.testclient import TestClient  # noqa: E402
 import server  # noqa: E402
 
 
-def _fake_message(text: str) -> SimpleNamespace:
-    """Build a minimal stand-in for anthropic.types.Message."""
-    return SimpleNamespace(content=[SimpleNamespace(type="text", text=text)])
+def _fake_chat_completion(text: str) -> dict:
+    return {"choices": [{"message": {"role": "assistant", "content": text}}]}
 
 
 def _fake_client(return_text: str) -> MagicMock:
-    client = MagicMock()
-    client.messages.create.return_value = _fake_message(return_text)
-    return client
+    return MagicMock(return_value=_fake_chat_completion(return_text))
 
 
 WELL_FORMED_JSON = json.dumps(
     {
         "esi_level": "critical",
-        "rationale": "ST elevation in II, III, aVF with troponin 3.2 — anterior wall MI.",
-        "red_flags": ["ST elevation / new LBBB / troponin elevation"],
+        "rationale": "Collapse with poor perfusion is a critical red flag.",
+        "red_flags": ["collapse", "shock or poor perfusion"],
     }
 )
 
 SAMPLE_REQUEST = server.TriageClassifyRequest(
-    patient_id="er-101",
-    chief_complaint="crushing chest pain 45 min",
-    vitals=server.VitalsSnapshot(
-        hr=104, bp_systolic=152, bp_diastolic=94, spo2=95, rr=22
-    ),
-    ecg_findings="ST elevation II, III, aVF",
+    patient_id="vet-101",
+    chief_complaint="collapsed dog with pale gums",
+    vitals=server.VitalsSnapshot(hr=180, spo2=91, rr=44, temp_c=39.4),
+    notes="Pale mucous membranes, prolonged CRT, weak pulses.",
 )
 
 
 class TriageReasoningTests(unittest.TestCase):
-    # ─── model routing ───────────────────────────────────────────
-    def test_uses_opus_4_7(self) -> None:
-        client = _fake_client(WELL_FORMED_JSON)
-        server.run_triage_reasoning(client, SAMPLE_REQUEST)
-        kwargs = client.messages.create.call_args.kwargs
-        self.assertEqual(kwargs["model"], "claude-opus-4-7")
+    def test_uses_configured_openrouter_model(self) -> None:
+        completion = _fake_client(WELL_FORMED_JSON)
+        server.run_triage_reasoning(SAMPLE_REQUEST, chat_completion=completion)
+        kwargs = completion.call_args.kwargs
+        self.assertEqual(kwargs["model"], server.TRIAGE_MODEL)
 
     def test_system_prompt_contains_esi_rules(self) -> None:
-        client = _fake_client(WELL_FORMED_JSON)
-        server.run_triage_reasoning(client, SAMPLE_REQUEST)
-        kwargs = client.messages.create.call_args.kwargs
-        system = kwargs["system"]
+        completion = _fake_client(WELL_FORMED_JSON)
+        server.run_triage_reasoning(SAMPLE_REQUEST, chat_completion=completion)
+        kwargs = completion.call_args.kwargs
+        system = kwargs["messages"][0]["content"]
         self.assertIn("ESI", system)
         self.assertIn("red flag", system.lower())
         self.assertIn("critical", system)
@@ -87,45 +80,44 @@ class TriageReasoningTests(unittest.TestCase):
         self.assertIn("stable", system)
 
     def test_user_message_summarizes_the_patient(self) -> None:
-        client = _fake_client(WELL_FORMED_JSON)
-        server.run_triage_reasoning(client, SAMPLE_REQUEST)
-        kwargs = client.messages.create.call_args.kwargs
+        completion = _fake_client(WELL_FORMED_JSON)
+        server.run_triage_reasoning(SAMPLE_REQUEST, chat_completion=completion)
+        kwargs = completion.call_args.kwargs
         messages = kwargs["messages"]
-        self.assertEqual(len(messages), 1)
-        self.assertEqual(messages[0]["role"], "user")
-        body = messages[0]["content"]
-        self.assertIn("er-101", body)
-        self.assertIn("crushing chest pain", body)
-        self.assertIn("HR 104", body)
-        self.assertIn("BP 152/94", body)
-        self.assertIn("ST elevation", body)
+        self.assertEqual(len(messages), 2)
+        self.assertEqual(messages[1]["role"], "user")
+        body = messages[1]["content"]
+        self.assertIn("vet-101", body)
+        self.assertIn("collapsed dog", body)
+        self.assertIn("HR 180", body)
+        self.assertIn("RR 44", body)
+        self.assertIn("Pale mucous", body)
 
-    # ─── response parsing ────────────────────────────────────────
     def test_well_formed_response_parses(self) -> None:
-        client = _fake_client(WELL_FORMED_JSON)
-        result = server.run_triage_reasoning(client, SAMPLE_REQUEST)
-        self.assertEqual(result.patient_id, "er-101")
+        completion = _fake_client(WELL_FORMED_JSON)
+        result = server.run_triage_reasoning(SAMPLE_REQUEST, chat_completion=completion)
+        self.assertEqual(result.patient_id, "vet-101")
         self.assertEqual(result.esi_level, "critical")
-        self.assertEqual(result.model, "claude-opus-4-7")
-        self.assertIn("ST elevation", result.rationale)
-        self.assertEqual(len(result.red_flags), 1)
+        self.assertEqual(result.model, server.TRIAGE_MODEL)
+        self.assertIn("critical", result.rationale)
+        self.assertEqual(len(result.red_flags), 2)
 
     def test_json_fence_is_stripped(self) -> None:
         fenced = f"```json\n{WELL_FORMED_JSON}\n```"
-        client = _fake_client(fenced)
-        result = server.run_triage_reasoning(client, SAMPLE_REQUEST)
+        completion = _fake_client(fenced)
+        result = server.run_triage_reasoning(SAMPLE_REQUEST, chat_completion=completion)
         self.assertEqual(result.esi_level, "critical")
 
     def test_bare_fence_is_stripped(self) -> None:
         fenced = f"```\n{WELL_FORMED_JSON}\n```"
-        client = _fake_client(fenced)
-        result = server.run_triage_reasoning(client, SAMPLE_REQUEST)
+        completion = _fake_client(fenced)
+        result = server.run_triage_reasoning(SAMPLE_REQUEST, chat_completion=completion)
         self.assertEqual(result.esi_level, "critical")
 
     def test_malformed_json_raises_502(self) -> None:
-        client = _fake_client("this is not JSON at all, sorry")
+        completion = _fake_client("this is not JSON at all, sorry")
         with self.assertRaises(HTTPException) as cm:
-            server.run_triage_reasoning(client, SAMPLE_REQUEST)
+            server.run_triage_reasoning(SAMPLE_REQUEST, chat_completion=completion)
         self.assertEqual(cm.exception.status_code, 502)
         self.assertIn("malformed", cm.exception.detail)
 
@@ -133,60 +125,54 @@ class TriageReasoningTests(unittest.TestCase):
         bogus = json.dumps(
             {"esi_level": "ultra", "rationale": "r", "red_flags": []}
         )
-        client = _fake_client(bogus)
+        completion = _fake_client(bogus)
         with self.assertRaises(HTTPException) as cm:
-            server.run_triage_reasoning(client, SAMPLE_REQUEST)
+            server.run_triage_reasoning(SAMPLE_REQUEST, chat_completion=completion)
         self.assertEqual(cm.exception.status_code, 502)
 
     def test_empty_response_raises_502(self) -> None:
-        client = _fake_client("")
+        completion = _fake_client("")
         with self.assertRaises(HTTPException) as cm:
-            server.run_triage_reasoning(client, SAMPLE_REQUEST)
+            server.run_triage_reasoning(SAMPLE_REQUEST, chat_completion=completion)
         self.assertEqual(cm.exception.status_code, 502)
 
     def test_missing_red_flags_defaults_to_empty_list(self) -> None:
         partial = json.dumps(
-            {"esi_level": "stable", "rationale": "ankle sprain, vitals normal."}
+            {"esi_level": "stable", "rationale": "Mild itch, normal vitals."}
         )
-        client = _fake_client(partial)
-        result = server.run_triage_reasoning(client, SAMPLE_REQUEST)
+        completion = _fake_client(partial)
+        result = server.run_triage_reasoning(SAMPLE_REQUEST, chat_completion=completion)
         self.assertEqual(result.esi_level, "stable")
         self.assertEqual(result.red_flags, [])
 
 
 class TriageEndpointIntegrationTests(unittest.TestCase):
-    """HTTP-level smoke of the endpoint, patching the Anthropic client."""
+    """HTTP-level smoke of the endpoint, patching the OpenRouter boundary."""
 
     def setUp(self) -> None:
         self.client = TestClient(server.app)
+        self.client.headers.update({"Origin": "http://localhost:5173"})
 
     def test_endpoint_returns_response_from_mocked_client(self) -> None:
-        # Patch the lazy-built client so the route sees our mock.
         fake = _fake_client(WELL_FORMED_JSON)
-        original = server._anthropic_client
-        server._anthropic_client = fake
+        original = server.call_openrouter_chat
+        server.call_openrouter_chat = fake
         try:
             resp = self.client.post(
                 "/agent/triage/classify",
                 json={
-                    "patient_id": "er-101",
-                    "chief_complaint": "crushing chest pain",
-                    "vitals": {
-                        "hr": 104,
-                        "bp_systolic": 152,
-                        "bp_diastolic": 94,
-                        "spo2": 95,
-                        "rr": 22,
-                    },
-                    "ecg_findings": "ST elevation",
+                    "patient_id": "vet-101",
+                    "chief_complaint": "collapsed dog",
+                    "vitals": {"hr": 180, "spo2": 91, "rr": 44},
+                    "notes": "Pale mucous membranes",
                 },
             )
         finally:
-            server._anthropic_client = original
+            server.call_openrouter_chat = original
         self.assertEqual(resp.status_code, 200, resp.text)
         body = resp.json()
         self.assertEqual(body["esi_level"], "critical")
-        self.assertEqual(body["model"], "claude-opus-4-7")
+        self.assertEqual(body["model"], server.TRIAGE_MODEL)
 
 
 if __name__ == "__main__":

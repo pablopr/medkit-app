@@ -54,21 +54,38 @@ export interface TestResult {
   abnormal: boolean;
 }
 
+export type AnimalSpecies = 'dog' | 'cat';
+export type NeuterStatus = 'intact' | 'neutered' | 'spayed';
+export type AnimalSex = 'M' | 'F';
+
+export interface VeterinaryVitals {
+  hr: number;
+  rr: number;
+  temp: number;
+  mmColor: string;
+  crtSec: number;
+  hydration: string;
+  painScore: number;
+  mentation: string;
+  bp?: string;
+  spo2?: number;
+}
+
 export interface PatientCase {
   id: string;
   name: string;
   age: number;
-  gender: 'M' | 'F';
+  gender: AnimalSex;
+  species: AnimalSpecies;
+  breed?: string;
+  weightKg: number;
+  neuterStatus: NeuterStatus;
+  ownerName: string;
+  presentingComplaint: string;
   severity: Severity;
   arrivalBlurb: string;
   chiefComplaint: string;
-  vitals: {
-    hr: number;
-    bp: string;
-    spo2: number;
-    temp: number;
-    rr: number;
-  };
+  vitals: VeterinaryVitals;
   anamnesis: AnamnesisQA[];
   testResults: TestResult[];
   correctDiagnosisId: string;
@@ -80,7 +97,7 @@ export interface PatientCase {
 
 // ── OSCE rubric — grades a completed encounter ────────────────────────
 //
-// The `medkit-attending` Managed Agent reads this rubric at debrief time and
+// The `vetkit-attending` OpenRouter grader reads this rubric at debrief time and
 // emits one `render_case_evaluation` tool call. Every clinical_management
 // criterion's `guideline_ref` MUST resolve in `src/data/guidelines.ts` —
 // the agent is instructed to drop a criterion rather than fabricate a

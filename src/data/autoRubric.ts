@@ -1,6 +1,6 @@
 // Fallback rubric derivation for cases that don't ship with an authored
 // `rubric` field. The auto-rubric is intentionally minimal and citation-
-// free: it gives the medkit-attending agent enough structure to grade
+// free: it gives the vet-attending agent enough structure to grade
 // communication and basic clinical-management coverage, but it cannot
 // power the citation-card UX that hero cases get. When a non-hero case
 // rolls up with this fallback, the debrief still scores three domains —
@@ -14,14 +14,14 @@ const GENERIC_INTERPERSONAL: RubricCriterion[] = [
     label: 'Open with introduction and agenda-setting',
     weight: 1,
     framework: 'SEGUE',
-    evidence: 'Greets the patient, introduces self, confirms identity and negotiates the agenda for the visit.',
+    evidence: 'Greets the pet parent, introduces self, confirms the animal identity and negotiates the agenda for the visit.',
   },
   {
     criterion_id: 'ip-02',
     label: 'Explore ICE',
     weight: 2,
     framework: 'ICE',
-    evidence: 'Elicits the patient\u2019s ideas, concerns and expectations \u2014 not just symptom checklists.',
+    evidence: 'Elicits the pet parent\u2019s ideas, concerns and expectations \u2014 not just symptom checklists.',
   },
   {
     criterion_id: 'ip-03',
@@ -76,7 +76,7 @@ export function deriveAutoRubric(c: PatientCase): CaseRubric {
     interpersonal: GENERIC_INTERPERSONAL,
     safety_netting: {
       required_elements: [
-        'Tells the patient what symptoms should prompt urgent return',
+        'Tells the pet parent what symptoms should prompt urgent veterinary return',
         'Names a specific timeframe or trigger for follow-up',
       ],
       weight: 1,

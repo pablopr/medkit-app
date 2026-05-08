@@ -5,13 +5,17 @@ import { CLINIC_LABELS } from '../game/clinic';
 import { POLYCLINIC_CASES, POLYCLINIC_DIAGNOSIS_LABELS } from './polyclinicPatients';
 
 /** Cute-cartoon face descriptor for the case library. Derived deterministically
- *  from the underlying `PatientCase` so the same patient always renders the
+ *  from the underlying veterinary case so the same animal always renders the
  *  same face across screens. */
 export interface Case {
   id: string;
   name: string;
   age: number;
   sex: 'M' | 'F';
+  species: PatientCase['species'];
+  weightKg: number;
+  ownerName: string;
+  breed?: string;
   complaint: string;
   tags: string[];
   guideline: string;
@@ -65,8 +69,8 @@ function pickSkin(p: PatientCase): string {
 }
 
 function pickHair(p: PatientCase): string {
-  // Older patients lean grey/silver.
-  if (p.age >= 65) return HAIR_TONES[6 + (hash(p.id) % 2)];
+  // Senior animals lean grey/silver.
+  if (p.age >= 9) return HAIR_TONES[6 + (hash(p.id) % 2)];
   return HAIR_TONES[hash(p.id + 'hair') % 6];
 }
 
@@ -75,8 +79,8 @@ function pickMood(p: PatientCase): FaceMood {
   if (p.severity === 'urgent') return 'sick';
   // Mild anxiety hint based on chief complaint keywords.
   const cc = p.chiefComplaint.toLowerCase();
-  if (/(pain|chest|headache|bleed)/.test(cc)) return 'worried';
-  if (/(fever|cough|nausea|vomit|sore)/.test(cc)) return 'sick';
+  if (/(pain|blocked|cry|pant|breath|chocolate)/.test(cc)) return 'worried';
+  if (/(fever|cough|nausea|vomit|diarrhea|itch|sore|urine)/.test(cc)) return 'sick';
   return 'neutral';
 }
 
@@ -88,6 +92,7 @@ function tagsFor(p: PatientCase, clinic: ClinicId): string[] {
   const out: string[] = [];
   if (p.severity === 'critical') out.push('red flag');
   else if (p.severity === 'urgent') out.push('urgent');
+  out.push(p.species === 'dog' ? 'dog' : 'cat');
   out.push(CLINIC_LABELS[clinic].toLowerCase());
   return out;
 }
@@ -98,9 +103,13 @@ function toCase(p: PatientCase, clinic: ClinicId): Case {
     name: p.name,
     age: p.age,
     sex: p.gender,
-    complaint: p.chiefComplaint,
+    species: p.species,
+    weightKg: p.weightKg,
+    ownerName: p.ownerName,
+    breed: p.breed,
+    complaint: p.presentingComplaint,
     tags: tagsFor(p, clinic),
-    guideline: 'Polyclinic',
+    guideline: 'Small animal',
     skin: pickSkin(p),
     hair: pickHair(p),
     mood: pickMood(p),

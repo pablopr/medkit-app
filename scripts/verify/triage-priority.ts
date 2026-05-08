@@ -24,10 +24,10 @@ function sbp(bp: string): number | null {
 
 function stableViolations(p: PatientCase): string[] {
   const v = p.vitals;
-  const s = sbp(v.bp);
+  const s = v.bp ? sbp(v.bp) : null;
   const hit: string[] = [];
   if (v.hr > 130) hit.push(`HR ${v.hr}>130`);
-  if (v.spo2 < 88) hit.push(`SpO2 ${v.spo2}<88`);
+  if (typeof v.spo2 === 'number' && v.spo2 < 88) hit.push(`SpO2 ${v.spo2}<88`);
   if (s !== null && s < 80) hit.push(`SBP ${s}<80`);
   return hit;
 }

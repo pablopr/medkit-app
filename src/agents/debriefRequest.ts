@@ -1,5 +1,5 @@
-// Builds the [debrief request] payload sent to the medkit-attending Managed
-// Agent at end-of-encounter. The agent's system prompt (DEBRIEF MODE in
+// Builds the [debrief request] payload sent to the vetkit-attending
+// OpenRouter grader at end-of-encounter. The grader prompt (DEBRIEF MODE in
 // backend/server.py) declares the exact contract: case_id, rubric,
 // registry_slice, encounter_log. This module produces that JSON from the
 // in-memory PatientCase + ActivePatient.
@@ -29,6 +29,11 @@ export interface DebriefRequest {
     severity: string;
     age: number;
     gender: 'M' | 'F';
+    species: 'dog' | 'cat';
+    breed?: string;
+    weight_kg: number;
+    neuter_status: string;
+    owner_name: string;
   };
   rubric: CaseRubric;
   /** Subset of GUIDELINES containing only entries cited by the rubric.
@@ -136,6 +141,11 @@ export function buildDebriefRequest(
       severity: c.severity,
       age: c.age,
       gender: c.gender,
+      species: c.species,
+      breed: c.breed,
+      weight_kg: c.weightKg,
+      neuter_status: c.neuterStatus,
+      owner_name: c.ownerName,
     },
     rubric,
     registry_slice,
@@ -156,10 +166,8 @@ export function buildDebriefRequest(
   };
 }
 
-/** Encode the request as a single chat-message text block. The agent
- *  reads it from the user.message it receives — no separate channel
- *  exists in the Managed Agents API, so we prefix a stable header to
- *  make the trigger unambiguous in the system prompt's DEBRIEF MODE. */
+/** Encode the request as a single chat-message text block. We prefix a
+ *  stable header to make the trigger unambiguous in DEBRIEF MODE. */
 export function debriefRequestToUserMessage(req: DebriefRequest): string {
   return [
     '[debrief request]',

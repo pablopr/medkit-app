@@ -345,6 +345,7 @@ export function TopBar({
 }: TopBarProps) {
   return (
     <div
+      className="topbar"
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -365,12 +366,12 @@ export function TopBar({
       <Breadcrumb steps={steps} here={here} />
       {showProfile ? (
         <div
-          className="tap"
+          className="tap topbar-profile"
           onClick={() => store.setScreen('home')}
           title="Open profile"
           style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
         >
-          <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink-2)' }}>Bedirhan</span>
+          <span className="topbar-profile-name" style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink-2)' }}>Bedirhan</span>
           <div
             style={{
               width: 36,
@@ -417,7 +418,7 @@ export function Wordmark({ size = 36, dark = false }: WordmarkProps) {
       }}
     >
       <span style={{ position: 'relative', display: 'inline-block' }}>
-        med
+        vet
         <span
           style={{
             color: 'var(--peach-deep)',

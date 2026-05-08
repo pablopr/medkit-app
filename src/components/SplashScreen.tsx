@@ -92,7 +92,7 @@ export function SplashScreen() {
               gap: 14,
             }}
           >
-            med
+            vet
             <span style={{ color: 'var(--peach)' }}>kit</span>
             <span className="wobble" style={{ display: 'inline-block', marginLeft: 8, marginBottom: 30 }}>
               <Doodle kind="cross" size={86} color="#F47A92" />
@@ -114,7 +114,7 @@ export function SplashScreen() {
             boxShadow: 'var(--plush-tiny)',
           }}
         >
-          The clinic that lets you make every mistake before they count.
+          The veterinary clinic that lets you practice before it counts.
         </div>
 
         <div className="popin breathe" style={{ animationDelay: '.3s', marginTop: 24 }}>

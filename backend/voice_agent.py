@@ -3,7 +3,7 @@
 Runs as a separate process from the FastAPI server. Joins every LiveKit
 room created by the frontend and roleplays the patient over WebRTC:
 
-    Browser mic → Deepgram Nova-3 STT → Claude Haiku 4.5 → Cartesia Sonic-2 TTS → Browser
+    Browser mic → Deepgram Nova-3 STT → OpenRouter LLM → Cartesia Sonic-2 TTS → Browser
 
 The persona prompt and voice ID come from room metadata (set by the
 backend `/voice/token` endpoint when the room is created), so this
@@ -24,7 +24,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from livekit import agents, rtc
 from livekit.agents import Agent, AgentSession, RoomInputOptions, WorkerOptions, cli
-from livekit.plugins import anthropic, cartesia, deepgram, silero
+from livekit.plugins import cartesia, deepgram, openai, silero
 
 # Load .env.local first (project convention), .env as fallback.
 _BACKEND = Path(__file__).resolve().parent
@@ -54,6 +54,14 @@ DEFAULT_INSTRUCTIONS = (
     "sentences. Output spoken dialogue only — no stage directions, no asterisks."
 )
 DEFAULT_INITIAL = "Hi doc."
+OPENROUTER_BASE_URL = os.environ.get(
+    "OPENROUTER_BASE_URL",
+    "https://openrouter.ai/api/v1",
+).rstrip("/")
+OPENROUTER_VOICE_MODEL = os.environ.get(
+    "OPENROUTER_VOICE_MODEL",
+    os.environ.get("OPENROUTER_MODEL", "openai/gpt-5.2"),
+)
 
 
 def _hash_str(s: str) -> int:
@@ -81,10 +89,40 @@ def parse_metadata(raw: str | None) -> dict:
         return {}
 
 
+def build_openrouter_llm():
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    if not api_key:
+        raise RuntimeError("OPENROUTER_API_KEY is required for the voice worker")
+    # The LiveKit OpenAI plugin uses Chat Completions mode for OpenAI-compatible
+    # endpoints. Newer plugin versions accept api_key/base_url directly; the
+    # env fallback keeps older versions working.
+    os.environ.setdefault("OPENAI_API_KEY", api_key)
+    os.environ.setdefault("OPENAI_BASE_URL", OPENROUTER_BASE_URL)
+    kwargs = {
+        "model": OPENROUTER_VOICE_MODEL,
+        "temperature": 0.8,
+        "api_key": api_key,
+        "base_url": OPENROUTER_BASE_URL,
+    }
+    app_name = os.environ.get("OPENROUTER_APP_NAME", "Vetkit")
+    site_url = os.environ.get("OPENROUTER_SITE_URL")
+    headers = {"X-OpenRouter-Title": app_name}
+    if site_url:
+        headers["HTTP-Referer"] = site_url
+    kwargs["extra_headers"] = headers
+    try:
+        return openai.LLM(**kwargs)
+    except TypeError:
+        # Older plugin signature: rely on OPENAI_API_KEY / OPENAI_BASE_URL.
+        return openai.LLM(model=OPENROUTER_VOICE_MODEL, temperature=0.8)
+
+
 async def entrypoint(ctx: agents.JobContext):
     await ctx.connect()
 
-    meta = parse_metadata(ctx.room.metadata)
+    # Dispatch metadata is the reliable per-job channel; room metadata is
+    # kept as a fallback for older room-creation paths.
+    meta = parse_metadata(getattr(ctx.job, "metadata", None)) or parse_metadata(ctx.room.metadata)
     case_id = meta.get("caseId") or meta.get("case_id") or "unknown"
     speaker_gender = (meta.get("voiceGender") or meta.get("gender") or "M").upper()
     system_prompt = meta.get("systemPrompt") or DEFAULT_INSTRUCTIONS
@@ -99,7 +137,7 @@ async def entrypoint(ctx: agents.JobContext):
 
     session = AgentSession(
         stt=deepgram.STT(model="nova-3", language="en"),
-        llm=anthropic.LLM(model="claude-haiku-4-5-20251001", temperature=0.8),
+        llm=build_openrouter_llm(),
         tts=cartesia.TTS(model="sonic-2", voice=voice_id),
         vad=silero.VAD.load(),
     )

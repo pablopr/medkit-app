@@ -15,15 +15,15 @@ const CARDS: Card[] = [
     bg: 'var(--peach)',
     title: 'What this is.',
     body:
-      "A clinic full of simulated patients with histories, symptoms, and stories. You'll talk to them out loud, decide what to do, and get a structured debrief — every claim cited to a real published guideline.",
+      "A small-animal clinic full of simulated dogs, cats, and worried pet parents. You'll talk to the owner out loud, decide what to do, and get a structured veterinary debrief with cited guidance.",
     icon: <Doodle kind="stetho" size={140} color="var(--mint)" />,
-    tag: '01 · meet medkit',
+    tag: '01 · meet vetkit',
   },
   {
     bg: 'var(--mint)',
     title: 'How it works.',
     body:
-      'Pick a clinic. The next patient is called in. You speak; they answer in conversation. You order labs, prescribe, counsel, refer. At the end, a senior clinician walks you through what you did well and what to work on. Five to eight minutes per case. Patient conversations powered by Claude Opus 4.7.',
+      'Pick a veterinary service. The next pet parent walks in. You take the history, order tests, prescribe, counsel, and safety-net. At the end, a senior veterinarian walks you through what you did well and what to work on.',
     icon: <Doodle kind="cross" size={140} color="#F47A92" />,
     tag: '02 · the loop',
   },
@@ -31,7 +31,7 @@ const CARDS: Card[] = [
     bg: 'var(--sky)',
     title: "Who it's for.",
     body:
-      'For medical students, residents, and doctors preparing for OSCE-style exams. This is a training simulator, not a clinical tool. Never used to give real medical advice.',
+      'For veterinary students, interns, and small-animal clinicians practicing consultation flow. This is a training simulator, not a clinical tool, insurance quote, or source of real veterinary advice.',
     icon: <Doodle kind="heart" size={140} color="#F47A92" />,
     tag: '03 · safety line',
   },

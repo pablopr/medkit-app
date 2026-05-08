@@ -2,10 +2,10 @@ import { useMemo, useState } from 'react';
 import { TopBar } from './primitives';
 import { store } from '../game/store';
 
-// ── Agent topology — Opus 4.7 hub with live data-flow pulses ──────────
+// ── Agent topology — OpenRouter grader hub with live data-flow pulses ──
 //
-// Top-down map of the medkit-attending Managed Agent (Opus 4.7) and the
-// sub-rules + sessions it orchestrates. Every link carries a continuous
+// Top-down map of the vetkit-attending OpenRouter grader and the
+// sub-rules + request payloads it uses. Every link carries a continuous
 // stream of SVG-animated pulses so the screen reads as "always on".
 //
 // Pure SVG + a tiny CSS keyframe block — no extra deps.
@@ -46,15 +46,15 @@ interface ChildNode {
 
 const HUB_DETAILS: NodeDetails = {
   description:
-    'The Managed Agent that grades every encounter. Reads the trainee transcript plus tool-call logs, runs clinical reasoning passes, and emits a deterministic debrief payload the UI can render.',
+    'The OpenRouter-backed grader that grades every encounter. Reads the trainee transcript plus tool-call logs, runs clinical reasoning passes, and emits a deterministic debrief payload the UI can render.',
   meta: [
-    { label: 'Model', value: 'claude-opus-4-7' },
-    { label: 'Hosted in', value: 'backend/server.py · /agent/* proxy' },
-    { label: 'Output contract', value: 'render_case_evaluation tool call' },
+    { label: 'Model', value: 'OPENROUTER_GRADER_MODEL' },
+    { label: 'Hosted in', value: 'backend/server.py · /agent/debrief/evaluate' },
+    { label: 'Output contract', value: 'render_case_evaluation JSON' },
   ],
   files: [
     'backend/server.py',
-    'src/agents/managedAgent.ts',
+    'src/agents/useAttendingDebrief.ts',
     'src/agents/customTools.ts',
     'src/agents/eventStreamRenderer.tsx',
   ],
@@ -81,11 +81,10 @@ const SUB_RULES: ChildNode[] = [
     h: CARD_H,
     details: {
       description:
-        'CLAUDE.md forbids specialist sub-agents like triage-expert or pharmacology-expert. The Managed Agent composes behaviour from skills under .claude/skills/ instead, keeping the topology flat and inspectable.',
+        'The grader stays flat and inspectable: one request, one rubric, one registry slice, one structured debrief payload.',
       files: ['CLAUDE.md', '.claude/skills/'],
       bullets: [
-        'Skills are markdown procedures the agent loads on demand',
-        'New behaviour ships as a skill, not a new agent',
+        'New behaviour ships as prompt/schema/data changes, not hidden sub-agents',
         'Hard rules live as hooks in settings.json, not in prompts',
       ],
     },
@@ -104,9 +103,9 @@ const SUB_RULES: ChildNode[] = [
     h: CARD_H,
     details: {
       description:
-        'Final agent output is a structured render_case_evaluation tool call. The UI renders the JSON deterministically — domain scores, criteria, citations — so the trainee always sees the same shape.',
+        'Final grader output is a structured render_case_evaluation JSON object. The UI renders the JSON deterministically — domain scores, criteria, citations — so the trainee always sees the same shape.',
       files: [
-        'src/agents/eventStreamRenderer.tsx',
+        'src/agents/useAttendingDebrief.ts',
         'src/agents/customTools.ts',
         'src/components/DebriefScreen.tsx',
       ],
@@ -172,8 +171,8 @@ const SESSIONS: ChildNode[] = [
     id: 'sess-attending',
     side: 'right',
     title: 'medkit-attending · grading',
-    subtitle: 'Opus 4.7 · clinical reasoning passes',
-    badge: 'SESSION',
+    subtitle: 'OpenRouter · clinical reasoning passes',
+    badge: 'REQUEST',
     color: 'var(--peach)',
     deep: 'var(--peach-deep)',
     cx: RIGHT_CX,
@@ -182,16 +181,15 @@ const SESSIONS: ChildNode[] = [
     h: CARD_H,
     details: {
       description:
-        'The live grading session. The encounter transcript and tool-call log stream into the Managed Agent, which reasons over the rubric and emits a debrief payload back to the browser.',
+        'The grading request sends the encounter transcript and tool-call log to the FastAPI OpenRouter endpoint, which reasons over the rubric and emits a debrief payload back to the browser.',
       meta: [
-        { label: 'Model', value: 'claude-opus-4-7' },
-        { label: 'Transport', value: 'POST /agent/* via FastAPI' },
+        { label: 'Model', value: 'OPENROUTER_GRADER_MODEL' },
+        { label: 'Transport', value: 'POST /agent/debrief/evaluate via FastAPI' },
       ],
-      files: ['backend/server.py', 'src/agents/managedAgent.ts'],
+      files: ['backend/server.py', 'src/agents/useAttendingDebrief.ts'],
       bullets: [
-        'Streamed event log renders progressively in the debrief screen',
-        'Tool calls intercepted client-side via customTools.ts',
-        'Final render_case_evaluation closes the session',
+        'Debrief screen validates the returned payload with customTools.ts',
+        'Final render_case_evaluation renders the clinical debrief',
       ],
     },
   },
@@ -458,8 +456,8 @@ export function AgentTopologyScreen() {
     if (!selectedId) return null;
     if (selectedId === 'hub') {
       return {
-        title: 'Opus 4.7 — medkit-attending Managed Agent',
-        badge: 'MANAGED AGENT',
+        title: 'OpenRouter — vetkit-attending grader',
+        badge: 'OPENROUTER',
         color: 'var(--peach)',
         deep: 'var(--peach-deep)',
         details: HUB_DETAILS,
@@ -530,10 +528,10 @@ export function AgentTopologyScreen() {
               Live · agent topology
             </div>
             <div style={{ fontSize: 32, fontWeight: 900, color: 'var(--ink)' }}>
-              Opus 4.7 — medkit-attending Managed Agent
+              OpenRouter — vetkit-attending grader
             </div>
             <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-2)', marginTop: 4 }}>
-              Sub-rules feed in from the left · sessions stream out to the right · pulses are real
+              Sub-rules feed in from the left · payloads return on the right · pulses are real
               tokens of work in flight.
             </div>
           </div>
@@ -637,7 +635,7 @@ export function AgentTopologyScreen() {
             <NodeCard key={c.id} node={c} onSelect={setSelectedId} />
           ))}
 
-          {/* ── HUB: Opus 4.7 ── */}
+          {/* ── HUB: OpenRouter ── */}
           <g
             style={{
               transformOrigin: `${HUB.cx}px ${HUB.cy}px`,
@@ -745,7 +743,7 @@ export function AgentTopologyScreen() {
               fill="var(--ink)"
               letterSpacing="0.18em"
             >
-              MANAGED AGENT
+              OPENROUTER
             </text>
             <text
               x={HUB.cx}
@@ -756,7 +754,7 @@ export function AgentTopologyScreen() {
               fontFamily="Nunito, sans-serif"
               fill="var(--ink)"
             >
-              Opus 4.7
+              Grader
             </text>
             <text
               x={HUB.cx}
@@ -767,7 +765,7 @@ export function AgentTopologyScreen() {
               fontFamily="Nunito, sans-serif"
               fill="var(--ink-2)"
             >
-              medkit-attending
+              vetkit-attending
             </text>
           </g>
 

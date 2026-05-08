@@ -100,7 +100,7 @@ function CaseCard({ c, delay = 0, avatarStyle }: CaseCardProps) {
 
         <div style={{ fontWeight: 900, fontSize: 16, lineHeight: 1.15 }}>{c.name}</div>
         <div style={{ fontWeight: 700, fontSize: 12, color: 'var(--ink-2)', marginBottom: 6 }}>
-          {c.age} · {c.sex}
+          {c.species === 'dog' ? 'Dog' : 'Cat'} · {c.weightKg} kg · owner {c.ownerName}
         </div>
         <div style={{ fontSize: 13, color: 'var(--ink)', minHeight: 36, lineHeight: 1.3, fontWeight: 600 }}>
           "{c.complaint}"
@@ -228,9 +228,9 @@ export function CaseLibraryScreen() {
             ← Back
           </button>
           <div>
-            <h1 style={{ fontSize: 36, marginBottom: 4 }}>Pick a patient</h1>
+            <h1 style={{ fontSize: 36, marginBottom: 4 }}>Pick a pet</h1>
             <div style={{ fontWeight: 600, color: 'var(--ink-2)', fontSize: 14 }}>
-              Cases are grouped by polyclinic — pick a specialty chip to focus.
+              Cases are grouped by veterinary service — pick a chip to focus.
             </div>
           </div>
         </div>

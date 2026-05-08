@@ -8,6 +8,9 @@ dist
 .DS_Store
 
 # Python backend
+__pycache__/
+**/__pycache__/
+*.pyc
 backend/.venv/
 backend/.venv-voice/
 backend/__pycache__/
@@ -52,3 +55,5 @@ tsconfig.tsbuildinfo
 .vibe/
 .windsurf/
 .zencoder/
+.vercel
+.vercel_python_packages/

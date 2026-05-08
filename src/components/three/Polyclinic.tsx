@@ -84,6 +84,8 @@ const PALETTE = {
   paper: '#fbf7ec',
   brass: '#c89a54',
   rugRed: '#8a3628',
+  barkibu: '#f2763d',
+  barkibuMint: '#9fe0c2',
 };
 
 const FRONT_WALL_SEGMENTS = [
@@ -387,6 +389,11 @@ interface MonitorPatient {
   name: string;
   age: number;
   gender: 'M' | 'F';
+  severity: 'critical' | 'urgent' | 'stable';
+  species: 'dog' | 'cat';
+  breed?: string;
+  weightKg: number;
+  ownerName: string;
   chiefComplaint: string;
 }
 
@@ -409,7 +416,7 @@ function makeMonitorTexture(patient: MonitorPatient | null): CanvasTexture {
   ctx.fillRect(0, 0, w, 40);
   ctx.fillStyle = '#3B2A1F';
   ctx.font = 'bold 17px "Nunito", sans-serif';
-  ctx.fillText('medkit · Patient Record', 14, 26);
+  ctx.fillText('vetkit · Pet Record', 14, 26);
   ctx.fillStyle = '#5FCFA0';
   ctx.font = 'bold 12px "Nunito", sans-serif';
   ctx.fillText('● ACTIVE SESSION', w - 150, 26);
@@ -453,7 +460,11 @@ function makeMonitorTexture(patient: MonitorPatient | null): CanvasTexture {
   ctx.fillText(patient.name, cardX + 84, cardY + 38);
   ctx.fillStyle = '#6B4F3F';
   ctx.font = '600 14px "Nunito", sans-serif';
-  ctx.fillText(`${patient.age} years · ${patient.gender === 'F' ? 'Female' : 'Male'}`, cardX + 84, cardY + 60);
+  ctx.fillText(
+    `${patient.species === 'dog' ? 'Dog' : 'Cat'} · ${patient.breed ?? 'Mixed breed'} · ${patient.weightKg} kg`,
+    cardX + 84,
+    cardY + 60,
+  );
 
   // Divider.
   ctx.strokeStyle = 'rgba(43,30,22,0.18)';
@@ -522,6 +533,12 @@ function drawChip(ctx: CanvasRenderingContext2D, x: number, y: number, label: st
   ctx.fillText(label, x + padX, y + 15);
 }
 
+function hashSceneString(value: string): number {
+  let h = 0;
+  for (let i = 0; i < value.length; i++) h = (h * 31 + value.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
 /** Wide consultation desk — faces into the room (+z). Houses the computer
  *  archive interactable at its center. The monitor renders an EMR card
  *  populated by the current polyclinic patient. */
@@ -539,6 +556,10 @@ function DoctorDesk({
     patient?.name,
     patient?.age,
     patient?.gender,
+    patient?.species,
+    patient?.breed,
+    patient?.weightKg,
+    patient?.ownerName,
     patient?.chiefComplaint,
   ]);
   useEffect(() => () => monitorTex.dispose(), [monitorTex]);
@@ -714,6 +735,10 @@ function DoctorDesk({
           <meshStandardMaterial color="#f2d8b0" roughness={0.4} />
         </mesh>
       </group>
+
+      {/* Barkibu leaflet — visible on the doctor's desk, tying the in-scene
+          consultation to the cost-support card that appears in debrief. */}
+      <BarkibuLeaflet position={[0.18, 0.832, 0.36]} rotationY={-0.18} />
 
       {/* pen holder cup with pens — single tidy cluster of desk stationery */}
       <group position={[-0.45, 0.83, -0.3]}>
@@ -955,6 +980,8 @@ function makeDiplomaTexture(
 }
 
 function makeAnatomyChartTexture(): CanvasTexture {
+  return makeVetAnatomyChartTexture();
+
   const w = 512, h = 768;
   const canvas = document.createElement('canvas');
   canvas.width = w; canvas.height = h;
@@ -1227,6 +1254,146 @@ function makeAnatomyChartTexture(): CanvasTexture {
   return tex;
 }
 
+function makeVetAnatomyChartTexture(): CanvasTexture {
+  const w = 512, h = 768;
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d')!;
+
+  const bg = ctx.createLinearGradient(0, 0, 0, h);
+  bg.addColorStop(0, '#f7efdc');
+  bg.addColorStop(1, '#e7d7b4');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = 'rgba(90,48,16,0.045)';
+  for (let i = 0; i < 280; i++) {
+    ctx.fillRect(Math.random() * w, Math.random() * h, Math.random() * 2, Math.random() * 2);
+  }
+
+  ctx.fillStyle = '#4a1f0a';
+  ctx.font = 'bold 30px "Times New Roman", serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('CANINE & FELINE ANATOMY', w / 2, 46);
+  ctx.font = 'italic 15px "Times New Roman", serif';
+  ctx.fillStyle = '#5a2818';
+  ctx.fillText('Thorax · Abdomen · Emergency landmarks', w / 2, 70);
+  ctx.strokeStyle = '#5a2818';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(w * 0.13, 84); ctx.lineTo(w * 0.87, 84); ctx.stroke();
+
+  const drawAnimal = (cx: number, cy: number, scale: number, species: 'dog' | 'cat') => {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(scale, scale);
+    ctx.strokeStyle = '#3a2010';
+    ctx.lineWidth = 2;
+    ctx.fillStyle = '#f7ebd0';
+
+    // Body and head in lateral view.
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 112, 48, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(-128, -8, 38, 30, -0.15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Muzzle / ears / tail.
+    ctx.beginPath();
+    ctx.moveTo(-158, -8);
+    ctx.lineTo(-198, 2);
+    ctx.lineTo(-158, 18);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    if (species === 'dog') {
+      ctx.moveTo(-138, -34); ctx.lineTo(-120, -76); ctx.lineTo(-100, -28);
+      ctx.moveTo(100, -8); ctx.quadraticCurveTo(158, -58, 182, -8);
+    } else {
+      ctx.moveTo(-150, -32); ctx.lineTo(-132, -74); ctx.lineTo(-112, -32);
+      ctx.moveTo(-118, -32); ctx.lineTo(-96, -70); ctx.lineTo(-86, -28);
+      ctx.moveTo(100, -5); ctx.quadraticCurveTo(170, -80, 192, -12);
+    }
+    ctx.stroke();
+
+    // Legs.
+    for (const x of [-66, -32, 48, 84]) {
+      ctx.beginPath();
+      ctx.moveTo(x, 35);
+      ctx.lineTo(x - 8, 118);
+      ctx.lineTo(x + 16, 118);
+      ctx.lineTo(x + 8, 35);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    // Organs.
+    ctx.strokeStyle = '#4a1808';
+    ctx.lineWidth = 1.4;
+    ctx.fillStyle = '#f0b0b4';
+    ctx.beginPath();
+    ctx.ellipse(-40, -8, 40, 30, -0.2, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#b83628';
+    ctx.beginPath();
+    ctx.ellipse(-18, 5, 22, 17, 0.15, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#6a3418';
+    ctx.beginPath();
+    ctx.ellipse(22, 10, 42, 24, -0.15, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#e8a078';
+    ctx.beginPath();
+    ctx.ellipse(70, 2, 34, 20, 0.2, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#e8c096';
+    ctx.beginPath();
+    ctx.ellipse(38, 35, 52, 20, 0, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+
+    ctx.restore();
+  };
+
+  drawAnimal(258, 250, 1, 'dog');
+  drawAnimal(250, 540, 0.72, 'cat');
+
+  const label = (text: string, sx: number, sy: number, tx: number, ty: number) => {
+    ctx.strokeStyle = '#3a1f0a';
+    ctx.lineWidth = 0.9;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(tx, ty);
+    ctx.stroke();
+    ctx.fillStyle = '#2a1508';
+    ctx.font = 'italic 13px "Times New Roman", serif';
+    ctx.textAlign = tx > w / 2 ? 'left' : 'right';
+    ctx.fillText(text, tx + (tx > w / 2 ? 4 : -4), ty + 4);
+  };
+
+  label('Heart', 240, 255, 420, 230);
+  label('Lungs', 210, 238, 82, 214);
+  label('Liver', 285, 260, 430, 286);
+  label('Stomach', 330, 244, 430, 338);
+  label('Bladder / urinary signs', 285, 563, 430, 606);
+  label('Hydration check', 158, 498, 78, 470);
+
+  ctx.fillStyle = '#4a1f0a';
+  ctx.font = 'italic 11px "Times New Roman", serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Vetkit clinical room reference — canine and feline patients', w / 2, h - 24);
+  ctx.strokeStyle = 'rgba(60,30,10,0.25)';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(12, 12, w - 24, h - 24);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.anisotropy = 4;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
 /** Framed diploma — canvas texture gives it the parchment/gold/seal look. */
 function Diploma({
   position,
@@ -1281,16 +1448,16 @@ function WallDiplomas() {
     <group>
       <Diploma
         position={[2.6, 2.05, ROOM_BACK_Z + 0.17]}
-        institution="Istanbul Faculty of Medicine"
-        degree="Doctor of Medicine"
-        name="Dr. Ahmet Yilmaz"
+        institution="Faculty of Veterinary Medicine"
+        degree="Doctor of Veterinary Medicine"
+        name="Dr. Deniz Kaya"
         year="2012"
       />
       <Diploma
         position={[3.9, 2.05, ROOM_BACK_Z + 0.17]}
-        institution="Hacettepe University"
-        degree="Board of Internal Medicine"
-        name="Dr. Ahmet Yilmaz"
+        institution="Small Animal College"
+        degree="Internal Medicine Certificate"
+        name="Dr. Deniz Kaya"
         year="2016"
         sealColor="#10507a"
       />
@@ -1298,9 +1465,9 @@ function WallDiplomas() {
         position={[3.25, 1.0, ROOM_BACK_Z + 0.17]}
         width={1.1}
         height={0.8}
-        institution="Ministry of Health"
-        degree="Specialist Practitioner"
-        name="Dr. Ahmet Yilmaz"
+        institution="Veterinary Council"
+        degree="Small Animal Practitioner"
+        name="Dr. Deniz Kaya"
         year="2019"
         sealColor="#1a6a3a"
       />
@@ -1547,7 +1714,7 @@ function CoatRack({ position }: { position: [number, number, number] }) {
 /** Anatomical teaching skeleton on a wheeled stand. Full-height human
  *  silhouette assembled from simple primitives — reads as a classroom
  *  skeleton, not a horror prop. */
-function Skeleton({
+export function Skeleton({
   position,
   rotationY = 0,
   scale = 1,
@@ -1857,6 +2024,240 @@ function ExamBed({ position, rotationY = 0 }: { position: [number, number, numbe
   );
 }
 
+function petPalette(seed: string, species: 'dog' | 'cat') {
+  const dog = ['#c48a4a', '#6a4a2a', '#2f2a24', '#e6d0a8', '#8a5a32'];
+  const cat = ['#d8c2a0', '#77716a', '#2f2f34', '#e8e1d2', '#b46a4a'];
+  const palette = species === 'dog' ? dog : cat;
+  return palette[hashSceneString(seed) % palette.length];
+}
+
+function DogPatientModel({
+  color,
+  severity,
+}: {
+  color: string;
+  severity?: 'critical' | 'urgent' | 'stable';
+}) {
+  const group = useRef<Group>(null);
+  const tail = useRef<Group>(null);
+  const urgent = severity === 'urgent';
+  const critical = severity === 'critical';
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    if (group.current) {
+      const breath = 1 + Math.sin(t * (critical ? 2.2 : 1.4)) * 0.025;
+      group.current.scale.y = breath;
+    }
+    if (tail.current) tail.current.rotation.z = Math.sin(t * (urgent ? 7.5 : 3.5)) * 0.28 + 0.55;
+  });
+  const bodyY = critical ? 0.24 : 0.38;
+  return (
+    <group ref={group}>
+      <mesh position={[0, bodyY, 0]} scale={[0.42, critical ? 0.18 : 0.26, 0.68]} castShadow>
+        <sphereGeometry args={[1, 24, 18]} />
+        <meshStandardMaterial color={color} roughness={0.78} />
+      </mesh>
+      <mesh position={[0, critical ? 0.42 : 0.62, -0.55]} scale={[0.28, 0.26, 0.28]} castShadow>
+        <sphereGeometry args={[1, 20, 16]} />
+        <meshStandardMaterial color={color} roughness={0.75} />
+      </mesh>
+      <mesh position={[0, critical ? 0.39 : 0.57, -0.8]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+        <cylinderGeometry args={[0.11, 0.06, 0.24, 14]} />
+        <meshStandardMaterial color="#8a5a3a" roughness={0.8} />
+      </mesh>
+      {[-0.14, 0.14].map((x, i) => (
+        <mesh key={`dog-ear-${i}`} position={[x, critical ? 0.56 : 0.78, -0.56]} rotation={[0.35, 0, x < 0 ? 0.7 : -0.7]} castShadow>
+          <coneGeometry args={[0.08, 0.22, 12]} />
+          <meshStandardMaterial color="#5a3825" roughness={0.85} />
+        </mesh>
+      ))}
+      {[-0.1, 0.1].map((x, i) => (
+        <mesh key={`dog-eye-${i}`} position={[x, critical ? 0.45 : 0.64, -0.81]}>
+          <sphereGeometry args={[0.018, 8, 8]} />
+          <meshStandardMaterial color="#17110d" />
+        </mesh>
+      ))}
+      <mesh position={[0, critical ? 0.36 : 0.53, -0.93]}>
+        <sphereGeometry args={[0.022, 8, 8]} />
+        <meshStandardMaterial color="#17110d" />
+      </mesh>
+      {[-0.28, 0.28].flatMap((x) =>
+        [-0.34, 0.34].map((z, i) => (
+          <mesh key={`dog-leg-${x}-${i}`} position={[x, critical ? 0.12 : 0.2, z]} castShadow>
+            <cylinderGeometry args={[0.055, 0.065, critical ? 0.22 : 0.4, 10]} />
+            <meshStandardMaterial color={color} roughness={0.78} />
+          </mesh>
+        )),
+      )}
+      <group ref={tail} position={[0, critical ? 0.34 : 0.52, 0.65]} rotation={[0.2, 0, 0.55]}>
+        <mesh position={[0, 0.14, 0]} rotation={[0.4, 0, 0]} castShadow>
+          <cylinderGeometry args={[0.035, 0.055, 0.34, 10]} />
+          <meshStandardMaterial color={color} roughness={0.8} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+function PetCarrierShell() {
+  return (
+    <group>
+      <RoundedBox args={[0.9, 0.48, 0.62]} radius={0.08} smoothness={3} position={[0, 0.28, 0]} castShadow receiveShadow>
+        <meshStandardMaterial color="#eadfce" roughness={0.75} />
+      </RoundedBox>
+      <RoundedBox args={[0.46, 0.34, 0.04]} radius={0.04} smoothness={3} position={[0, 0.3, -0.335]}>
+        <meshStandardMaterial color="#2f2a24" roughness={0.6} />
+      </RoundedBox>
+      {[-0.16, 0, 0.16].map((x) => (
+        <mesh key={`carrier-bar-${x}`} position={[x, 0.3, -0.362]}>
+          <boxGeometry args={[0.018, 0.3, 0.01]} />
+          <meshStandardMaterial color="#9a8f80" metalness={0.35} roughness={0.45} />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.56, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.22, 0.02, 10, 24, Math.PI]} />
+        <meshStandardMaterial color="#9a8f80" metalness={0.3} roughness={0.5} />
+      </mesh>
+    </group>
+  );
+}
+
+function CatPatientModel({
+  color,
+  severity,
+}: {
+  color: string;
+  severity?: 'critical' | 'urgent' | 'stable';
+}) {
+  const group = useRef<Group>(null);
+  const tail = useRef<Group>(null);
+  const critical = severity === 'critical';
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    if (group.current) group.current.position.y = Math.sin(t * 1.8) * 0.008;
+    if (tail.current) tail.current.rotation.z = Math.sin(t * 2.4) * 0.18 + 0.9;
+  });
+  return (
+    <group ref={group}>
+      <PetCarrierShell />
+      <mesh position={[0, 0.33, -0.18]} scale={[0.27, critical ? 0.15 : 0.2, 0.34]} castShadow>
+        <sphereGeometry args={[1, 20, 14]} />
+        <meshStandardMaterial color={color} roughness={0.82} />
+      </mesh>
+      <mesh position={[0, 0.48, -0.42]} scale={[0.18, 0.16, 0.16]} castShadow>
+        <sphereGeometry args={[1, 20, 14]} />
+        <meshStandardMaterial color={color} roughness={0.82} />
+      </mesh>
+      {[-0.08, 0.08].map((x) => (
+        <mesh key={`cat-ear-${x}`} position={[x, 0.62, -0.43]} rotation={[0.1, 0, x < 0 ? 0.25 : -0.25]} castShadow>
+          <coneGeometry args={[0.06, 0.16, 3]} />
+          <meshStandardMaterial color={color} roughness={0.82} />
+        </mesh>
+      ))}
+      {[-0.055, 0.055].map((x) => (
+        <mesh key={`cat-eye-${x}`} position={[x, 0.5, -0.57]}>
+          <sphereGeometry args={[0.014, 8, 8]} />
+          <meshStandardMaterial color="#17110d" />
+        </mesh>
+      ))}
+      <group ref={tail} position={[0.22, 0.38, 0.03]} rotation={[0.4, 0.1, 0.9]}>
+        <mesh position={[0, 0.12, 0]} castShadow>
+          <cylinderGeometry args={[0.026, 0.036, 0.34, 10]} />
+          <meshStandardMaterial color={color} roughness={0.82} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+function CaseProp({ patient }: { patient: MonitorPatient }) {
+  const cc = patient.chiefComplaint.toLowerCase();
+  if (cc.includes('chocolate')) {
+    return (
+      <group position={[0.55, 0.03, -0.2]} rotation={[0, -0.35, 0]}>
+        <mesh rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[0.28, 0.14]} />
+          <meshStandardMaterial color="#3a1d12" roughness={0.85} />
+        </mesh>
+        <Text position={[0, 0.006, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.028} color="#f4d58a" anchorX="center" anchorY="middle" fontWeight={900}>
+          dark
+        </Text>
+      </group>
+    );
+  }
+  if (cc.includes('bloody diarrhea') || cc.includes('parvo')) {
+    return (
+      <group position={[0.52, 0.02, -0.2]}>
+        <mesh rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[0.34, 0.18]} />
+          <meshStandardMaterial color="#f6df62" roughness={0.8} />
+        </mesh>
+        <Text position={[0, 0.006, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.028} color="#3b2a1f" anchorX="center" anchorY="middle" fontWeight={900}>
+          ISO
+        </Text>
+      </group>
+    );
+  }
+  return null;
+}
+
+function ConsultationPet({ patient }: { patient: MonitorPatient }) {
+  const color = petPalette(patient.id + patient.name, patient.species);
+  const isCat = patient.species === 'cat';
+  const weightScale = isCat
+    ? THREE.MathUtils.clamp(patient.weightKg / 5.5, 0.82, 1.05)
+    : THREE.MathUtils.clamp(patient.weightKg / 22, 0.72, 1.18);
+  const pos: [number, number, number] = isCat
+    ? [PATIENT_CHAIR_POS[0] - 0.75, 0.02, PATIENT_CHAIR_POS[2] + 0.28]
+    : [PATIENT_CHAIR_POS[0] - 0.72, 0.02, PATIENT_CHAIR_POS[2] + 0.2];
+  return (
+    <group position={pos} rotation={[0, -0.12, 0]} scale={weightScale}>
+      {isCat ? <CatPatientModel color={color} severity={patient.severity} /> : <DogPatientModel color={color} severity={patient.severity} />}
+      <CaseProp patient={patient} />
+      <Text position={[0, 0.02, 0.82]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.07} color="#6b4f3f" anchorX="center" anchorY="middle" fontWeight={900}>
+        {patient.name}
+      </Text>
+    </group>
+  );
+}
+
+function PetScaleStation({ position, rotationY = 0 }: { position: [number, number, number]; rotationY?: number }) {
+  return (
+    <group position={position} rotation={[0, rotationY, 0]}>
+      <RoundedBox args={[0.82, 0.1, 0.62]} radius={0.04} smoothness={3} position={[0, 0.08, 0]} castShadow receiveShadow>
+        <meshStandardMaterial color="#c4c9c6" metalness={0.25} roughness={0.45} />
+      </RoundedBox>
+      <mesh position={[0, 0.145, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[0.56, 0.36]} />
+        <meshStandardMaterial color="#f3efe4" roughness={0.75} />
+      </mesh>
+      <Text position={[0, 0.152, 0.02]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.07} color="#5a4a3c" anchorX="center" anchorY="middle" fontWeight={900}>
+        kg
+      </Text>
+      <RoundedBox args={[0.56, 0.38, 0.12]} radius={0.03} smoothness={3} position={[0, 0.58, -0.34]} castShadow>
+        <meshStandardMaterial color="#fbf7ec" roughness={0.7} />
+      </RoundedBox>
+      <Text position={[0, 0.62, -0.405]} fontSize={0.065} color="#2a9a4a" anchorX="center" anchorY="middle" fontWeight={900}>
+        VET SCALE
+      </Text>
+      {[-0.16, 0.16].map((x) => (
+        <group key={`paw-${x}`} position={[x, 0.154, -0.11]}>
+          <mesh rotation={[-Math.PI / 2, 0, 0]}>
+            <circleGeometry args={[0.035, 12]} />
+            <meshStandardMaterial color={PALETTE.barkibuMint} />
+          </mesh>
+          {[-0.035, 0, 0.035].map((dx) => (
+            <mesh key={`toe-${dx}`} position={[dx, 0, -0.04]} rotation={[-Math.PI / 2, 0, 0]}>
+              <circleGeometry args={[0.014, 10]} />
+              <meshStandardMaterial color={PALETTE.barkibuMint} />
+            </mesh>
+          ))}
+        </group>
+      ))}
+    </group>
+  );
+}
+
 /** Wall-mounted first-aid cabinet with a big green cross — a piece of
  *  real clinic signage for an otherwise bare wall. Thinner than the
  *  MedicineCabinet, no glass door. */
@@ -1965,6 +2366,47 @@ function Rug({ position, size = [3.2, 4.0] as [number, number] }: { position: [n
 }
 
 /** Small side table next to the patient chair. */
+function BarkibuLeaflet({ position, rotationY = 0 }: { position: [number, number, number]; rotationY?: number }) {
+  return (
+    <group position={position} rotation={[0, rotationY, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} castShadow>
+        <planeGeometry args={[0.28, 0.18]} />
+        <meshStandardMaterial color="#fff4e8" roughness={0.8} />
+      </mesh>
+      <mesh position={[-0.09, 0.004, -0.055]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[0.07, 0.045]} />
+        <meshStandardMaterial color={PALETTE.barkibu} emissive={PALETTE.barkibu} emissiveIntensity={0.25} />
+      </mesh>
+      <Text
+        position={[0.018, 0.007, -0.058]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        fontSize={0.022}
+        color="#3b2a1f"
+        anchorX="center"
+        anchorY="middle"
+        fontWeight={900}
+      >
+        Barkibu
+      </Text>
+      <Text
+        position={[0, 0.007, -0.016]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        fontSize={0.014}
+        color="#6b4f3f"
+        anchorX="center"
+        anchorY="middle"
+        fontWeight={700}
+      >
+        Helps with vet bills
+      </Text>
+      <mesh position={[0, 0.006, 0.04]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[0.22, 0.018]} />
+        <meshStandardMaterial color={PALETTE.barkibuMint} roughness={0.8} />
+      </mesh>
+    </group>
+  );
+}
+
 function SideTable({ position }: { position: [number, number, number] }) {
   return (
     <group position={position}>
@@ -1994,11 +2436,7 @@ function SideTable({ position }: { position: [number, number, number] }) {
         <cylinderGeometry args={[0.035, 0.035, 0.11, 12]} />
         <meshStandardMaterial color="#c8e0ea" transparent opacity={0.5} roughness={0.1} />
       </mesh>
-      {/* magazine */}
-      <mesh position={[0.08, 0.575, 0.1]} rotation={[-Math.PI / 2, 0, 0.1]}>
-        <planeGeometry args={[0.18, 0.24]} />
-        <meshStandardMaterial color="#b83c3c" />
-      </mesh>
+      <BarkibuLeaflet position={[0.08, 0.577, 0.1]} rotationY={0.15} />
     </group>
   );
 }
@@ -2567,7 +3005,7 @@ function SeatedDoctorInteractable({ patientName }: { patientName: string | null 
       id: 'polyclinic-archive',
       position: DESK_POS,
       radius: 100,
-      prompt: 'E — Patient records',
+      prompt: 'E — Pet records',
       kind: 'desk',
     });
     return () => interactionBus.unregister('polyclinic-archive');
@@ -2689,11 +3127,9 @@ function WalkingPatient({
   const charPose: 'walking' | 'sitting' =
     phase === 'seated' ? 'sitting' : 'walking';
   const expression = deriveExpression(severity, complaint);
-  // Pediatric patients arrive with an accompanying adult. The companion
-  // walks alongside the child, then stands beside the chair while the
-  // child sits. Gender comes from the SAME helper the voice persona uses
-  // (`parentGenderForId`) so the visible parent and the speaking parent
-  // are always the same person.
+  // Pediatric human patients used to arrive with an accompanying adult. In
+  // the veterinary MVP, the visible human is already the pet parent, so animal
+  // ages should not create a child + parent pair.
   const isChild = patientAge < 14;
   const parentSeed = isChild && caseId ? `${caseId}-parent` : null;
   const parentGender: 'M' | 'F' = caseId ? parentGenderForId(caseId) : 'F';
@@ -2852,7 +3288,7 @@ export function Polyclinic({
       <SpecialtyPoster
         position={[-3.0, 2.2, ROOM_BACK_Z + 0.18]}
         title={clinicLabel.toUpperCase()}
-        subtitle="DR. CONSULTATION ROOM"
+        subtitle="VETERINARY CONSULTATION"
       />
       <WallDiplomas />
 
@@ -2910,6 +3346,11 @@ export function Polyclinic({
                 name: patient.case.name,
                 age: patient.case.age,
                 gender: patient.case.gender,
+                severity: patient.case.severity,
+                species: patient.case.species,
+                breed: patient.case.breed,
+                weightKg: patient.case.weightKg,
+                ownerName: patient.case.ownerName,
                 chiefComplaint: patient.case.chiefComplaint,
               }
             : null
@@ -2922,9 +3363,25 @@ export function Polyclinic({
           stays on screen from walk-in through seated through walk-out
           so the character's identity is consistent. */}
       <PatientChair position={PATIENT_CHAIR_POS} rotationY={Math.PI} />
+      {patient && (
+        <ConsultationPet
+          patient={{
+            id: patient.case.id,
+            name: patient.case.name,
+            age: patient.case.age,
+            gender: patient.case.gender,
+            severity: patient.case.severity,
+            species: patient.case.species,
+            breed: patient.case.breed,
+            weightKg: patient.case.weightKg,
+            ownerName: patient.case.ownerName,
+            chiefComplaint: patient.case.chiefComplaint,
+          }}
+        />
+      )}
       {/* Single context-aware interactable: examines the patient when one
            is seated, otherwise opens the archive. */}
-      <SeatedDoctorInteractable patientName={patient?.case.name ?? null} />
+      <SeatedDoctorInteractable patientName={patient?.case.ownerName ?? null} />
 
       {/* Side table beside the patient chair — tissues, water, magazine */}
       <SideTable position={[PATIENT_CHAIR_POS[0] + 1.0, 0, PATIENT_CHAIR_POS[2]]} />
@@ -2947,13 +3404,11 @@ export function Polyclinic({
           patient chair as well as from the corridor through the open door. */}
       <CoatRack position={[WORLD_RIGHT_X - 0.75, 0, ROOM_FRONT_Z - 0.6]} />
 
-      {/* Anatomical teaching skeleton on a wheeled stand — front-left
-          corner. The old bare wall behind the patient chair gets a real
-          clinical focal point. */}
-      <Skeleton
+      {/* Veterinary weighing station in the front-left corner — replaces the
+          human skeleton prop so the room reads as small-animal practice. */}
+      <PetScaleStation
         position={[WORLD_LEFT_X + 0.7, 0, ROOM_FRONT_Z - 0.6]}
         rotationY={2.45}
-        scale={1.18}
       />
 
       {/* Examination couch — flush against the right wall, long axis
@@ -2990,8 +3445,8 @@ export function Polyclinic({
       <WalkingPatient
         hasPatient={!!patient}
         patientKey={patientKey}
-        age={patient?.case.age}
-        gender={patient?.case.gender}
+        age={patient ? 38 : undefined}
+        gender={patient ? parentGenderForId(patient.case.id) : undefined}
         caseId={patient?.case.id}
         severity={patient?.case.severity}
         complaint={patient?.case.chiefComplaint}
@@ -3020,7 +3475,7 @@ export function Polyclinic({
         anchorX="center"
         anchorY="middle"
       >
-        CONSULTATION
+        VET CONSULTATION
       </Text>
     </>
   );

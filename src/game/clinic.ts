@@ -64,33 +64,34 @@ export const CLINIC_IDS: ClinicId[] = [
   'cardiothoracic-vascular-surgery',
 ];
 
-/** English display labels for each specialty. */
+/** English display labels for each veterinary service. The IDs remain stable
+ *  to avoid a broad migration through the 3D scene and existing filters. */
 export const CLINIC_LABELS: Record<ClinicId, string> = {
-  'all-specialties': 'All Specialties (mixed)',
-  'internal-medicine': 'Internal Medicine',
-  cardiology: 'Cardiology',
-  neurology: 'Neurology',
-  neurosurgery: 'Neurosurgery',
-  dermatology: 'Dermatology',
-  endocrinology: 'Endocrinology',
+  'all-specialties': 'All Vet Services (mixed)',
+  'internal-medicine': 'General Practice',
+  cardiology: 'Veterinary Cardiology',
+  neurology: 'Veterinary Neurology',
+  neurosurgery: 'Referral Neurology',
+  dermatology: 'Veterinary Dermatology',
+  endocrinology: 'Endocrine & Weight Clinic',
   gastroenterology: 'Gastroenterology',
-  pulmonology: 'Pulmonology',
-  nephrology: 'Nephrology',
-  rheumatology: 'Rheumatology',
+  pulmonology: 'Respiratory Medicine',
+  nephrology: 'Renal & Urinary Medicine',
+  rheumatology: 'Mobility & Pain Clinic',
   hematology: 'Hematology',
   oncology: 'Oncology',
   'infectious-disease': 'Infectious Disease',
   'allergy-immunology': 'Allergy & Immunology',
-  psychiatry: 'Psychiatry',
-  obgyn: 'OB/GYN',
-  urology: 'Urology',
+  psychiatry: 'Behavior Medicine',
+  obgyn: 'Reproductive Medicine',
+  urology: 'Urinary Medicine',
   ophthalmology: 'Ophthalmology',
-  ent: 'ENT',
+  ent: 'Ear, Nose & Throat',
   orthopedics: 'Orthopedics',
-  pmr: 'Physical Medicine & Rehab',
-  pediatrics: 'Pediatrics',
-  'general-surgery': 'General Surgery',
-  'cardiothoracic-vascular-surgery': 'Cardiothoracic & Vascular Surgery',
+  pmr: 'Rehab & Mobility',
+  pediatrics: 'Puppy & Kitten Clinic',
+  'general-surgery': 'Soft Tissue Surgery',
+  'cardiothoracic-vascular-surgery': 'Advanced Surgery',
 };
 
 export const DEFAULT_CLINIC: ClinicId = 'internal-medicine';

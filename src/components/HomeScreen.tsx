@@ -182,11 +182,11 @@ export function HomeScreen() {
               {stats.count === 0 ? 'Day one' : 'Welcome back'}
             </div>
             <h1 style={{ fontSize: 44, lineHeight: 1.05, marginTop: 4 }}>
-              {stats.count === 0 ? 'Ready when you are.' : 'Welcome back, doctor.'}
+              {stats.count === 0 ? 'Ready when you are.' : 'Welcome back, vet.'}
             </h1>
             <div style={{ fontSize: 16, color: 'var(--ink-2)', fontWeight: 600, marginTop: 6 }}>
               {stats.count === 0
-                ? 'Pick a polyclinic and your first case walks in. Your training log starts filling in after that.'
+                ? 'Pick a veterinary service and your first pet parent walks in. Your training log starts filling in after that.'
                 : 'Your training log is updating with every case you finish.'}
             </div>
           </div>
@@ -221,7 +221,7 @@ export function HomeScreen() {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 900, fontSize: 22 }}>No case picked yet</div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink-2)', marginTop: 2 }}>
-                    Choose a polyclinic — the next patient on the bench will walk straight in.
+                    Choose a veterinary service — the next pet parent on the bench will walk straight in.
                   </div>
                 </div>
                 <button
@@ -343,12 +343,12 @@ export function HomeScreen() {
               }
               store.setScreen('agentTopology');
             }}
-            title="Live map of Opus 4.7 and the sub-rules + sessions it controls"
+            title="Live map of the OpenRouter grader and the sub-rules it uses"
           >
             <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span className="chip peach" style={{ fontSize: 10 }}>LIVE</span>
               <span style={{ fontWeight: 800 }}>Agent topology</span>
-              <span style={{ fontWeight: 600, color: 'var(--ink-2)' }}>· Opus 4.7 → sub-rules &amp; sessions</span>
+              <span style={{ fontWeight: 600, color: 'var(--ink-2)' }}>· OpenRouter → rubric &amp; debrief</span>
             </span>
             <span style={{ fontWeight: 800, color: 'var(--ink-2)' }}>→</span>
           </button>

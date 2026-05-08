@@ -101,7 +101,7 @@ export function ExamineOverlay({ onClose, onDispatch }: Props) {
             </span>
             <h2 style={{ margin: 0, fontSize: 22, lineHeight: 1.1 }}>{c.name}</h2>
             <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink-2)' }}>
-              {c.age} · {c.gender === 'F' ? 'Female' : 'Male'}
+              {c.species === 'dog' ? 'Dog' : 'Cat'} · {c.breed ?? 'Mixed breed'} · {c.weightKg} kg · owner {c.ownerName}
             </span>
             <span
               className={`chip ${c.severity === 'critical' ? 'rose' : c.severity === 'urgent' ? 'peach' : 'mint'}`}
@@ -125,7 +125,7 @@ export function ExamineOverlay({ onClose, onDispatch }: Props) {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(5, 1fr)',
+            gridTemplateColumns: 'repeat(6, 1fr)',
             gap: 8,
             padding: '12px 22px',
             background: 'var(--cream)',
@@ -133,10 +133,11 @@ export function ExamineOverlay({ onClose, onDispatch }: Props) {
           }}
         >
           <Vital icon="❤" label="HR" value={String(c.vitals.hr)} unit="bpm" tone="var(--rose)" />
-          <Vital icon="⌥" label="BP" value={c.vitals.bp} unit="mmHg" tone="var(--peach)" />
-          <Vital icon="○" label="SpO₂" value={`${c.vitals.spo2}`} unit="%" tone="var(--mint)" />
-          <Vital icon="☼" label="Temp" value={c.vitals.temp.toFixed(1)} unit="°C" tone="var(--butter)" />
           <Vital icon="~" label="RR" value={String(c.vitals.rr)} unit="/min" tone="var(--sky)" />
+          <Vital icon="☼" label="Temp" value={c.vitals.temp.toFixed(1)} unit="°C" tone="var(--butter)" />
+          <Vital icon="○" label="CRT" value={String(c.vitals.crtSec)} unit="sec" tone="var(--mint)" />
+          <Vital icon="!" label="Pain" value={String(c.vitals.painScore)} unit="/10" tone="var(--peach)" />
+          <Vital icon="◆" label="MM" value={c.vitals.mmColor} unit="" tone="white" />
         </div>
 
         {/* Tab strip */}
@@ -208,10 +209,13 @@ export function ExamineOverlay({ onClose, onDispatch }: Props) {
             }}
           >
             "{c.chiefComplaint}"
+            <div style={{ marginTop: 6, fontSize: 12, color: 'var(--ink-2)', fontWeight: 800, fontStyle: 'normal' }}>
+              Mentation: {c.vitals.mentation} · Hydration: {c.vitals.hydration}
+            </div>
           </div>
 
           {tab === 'history' && <HistoryTab patient={patient} />}
-          {tab === 'chat' && <ChatTab patientName={c.name} />}
+          {tab === 'chat' && <ChatTab patientName={c.ownerName} />}
           {tab === 'tests' && <TestsTab patient={patient} />}
           {tab === 'results' && <ResultsTab patient={patient} />}
           {tab === 'diagnose' && (
@@ -312,7 +316,7 @@ function HistoryTab({ patient }: { patient: NonNullable<ReturnType<typeof useGam
           <div style={{ fontWeight: 800, fontSize: 13, color: 'var(--ink-2)' }}>You asked</div>
           <div style={{ fontWeight: 700, fontSize: 14 }}>{q.question}</div>
           <div style={{ marginTop: 4, fontSize: 14, fontStyle: 'italic' }}>
-            <strong>{c.name.split(' ')[0]}:</strong> "{q.answer}"
+            <strong>{c.ownerName}:</strong> "{q.answer}"
           </div>
         </div>
       ))}
