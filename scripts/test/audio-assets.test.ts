@@ -7,6 +7,7 @@ interface WavStats {
   durationSec: number;
   rms: number;
   peak: number;
+  zeroCrossingRate: number;
 }
 
 function read16BitMonoWav(path: string): WavStats {
@@ -41,17 +42,22 @@ function read16BitMonoWav(path: string): WavStats {
 
   let sumSquares = 0;
   let peak = 0;
+  let crossings = 0;
+  let previous = 0;
   const samples = data.length / 2;
   for (let i = 0; i < data.length; i += 2) {
     const s = data.readInt16LE(i);
     sumSquares += s * s;
     peak = Math.max(peak, Math.abs(s));
+    if (i > 0 && ((previous < 0 && s >= 0) || (previous >= 0 && s < 0))) crossings += 1;
+    previous = s;
   }
 
   return {
     durationSec: samples / sampleRate,
     rms: Math.sqrt(sumSquares / samples),
     peak,
+    zeroCrossingRate: crossings / Math.max(1, samples - 1),
   };
 }
 
@@ -60,7 +66,7 @@ test('generated audio assets are audible without clipping', () => {
   const expectations = [
     { file: 'ui-click.wav', minRms: 5_000, minDuration: 0.04 },
     { file: 'case-complete.wav', minRms: 4_000, minDuration: 0.12 },
-    { file: 'vetkit-lobby-ambient.wav', minRms: 3_000, minDuration: 20 },
+    { file: 'vetkit-lobby-music.wav', minRms: 3_000, minDuration: 28 },
   ];
 
   for (const item of expectations) {
@@ -69,6 +75,16 @@ test('generated audio assets are audible without clipping', () => {
     assert.ok(stats.rms >= item.minRms, `${item.file} is too quiet: rms=${stats.rms.toFixed(1)}`);
     assert.ok(stats.peak < 30_000, `${item.file} is clipping: peak=${stats.peak}`);
   }
+});
+
+test('lobby background uses music rather than noise ambience', () => {
+  const root = join(process.cwd(), 'public', 'assets', 'audio');
+  const stats = read16BitMonoWav(join(root, 'vetkit-lobby-music.wav'));
+  const backgroundMusic = readFileSync(join(process.cwd(), 'src', 'components', 'BackgroundMusic.tsx'), 'utf8');
+
+  assert.match(backgroundMusic, /vetkit-lobby-music\.wav/);
+  assert.doesNotMatch(backgroundMusic, /vetkit-lobby-ambient\.wav/);
+  assert.ok(stats.zeroCrossingRate < 0.12, `lobby music is too noise-like: zcr=${stats.zeroCrossingRate.toFixed(3)}`);
 });
 
 test('playback volume constants keep UI sounds audible', () => {

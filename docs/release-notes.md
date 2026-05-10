@@ -1,5 +1,13 @@
 # Release Notes
 
+## 2026-05-10 — Lobby music replacement
+
+### Fixed
+
+- Replaced the lobby background asset that felt like grey noise with an original tonal music loop.
+- Renamed the lobby file from `vetkit-lobby-ambient.wav` to `vetkit-lobby-music.wav` so the asset name matches the intended product behavior.
+- Added a regression check that the lobby player references the music asset and rejects noise-like audio characteristics.
+
 ## 2026-05-10 — Audio playback fix
 
 ### Fixed
