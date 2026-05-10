@@ -33,13 +33,31 @@ function collectAllCases(): PatientCase[] {
   return out;
 }
 
+function collectPolyclinicCases(): PatientCase[] {
+  const out: PatientCase[] = [];
+  for (const [specialty, cases] of Object.entries(POLYCLINIC_CASES)) {
+    if (specialty === 'all-specialties') continue;
+    if (cases) out.push(...cases);
+  }
+  return out;
+}
+
 export function verifyDataIntegrity(): Violation[] {
   const violations: Violation[] = [];
   const testIds = new Set(TESTS.map((t) => t.id));
   const treatmentIds = new Set(TREATMENTS.map((t) => t.id));
   const cases = collectAllCases();
+  const polyclinicCases = collectPolyclinicCases();
   const caseIds = new Map<string, number>();
   const knownDiagnoses = new Set<string>();
+
+  if (polyclinicCases.length < 11) {
+    violations.push({
+      case: 'polyclinic-catalogue',
+      rule: 'expected at least 11 veterinary cases after MVP expansion',
+      detail: `${polyclinicCases.length} cases found`,
+    });
+  }
 
   for (const c of cases) {
     caseIds.set(c.id, (caseIds.get(c.id) ?? 0) + 1);
@@ -116,6 +134,20 @@ export function verifyDataIntegrity(): Violation[] {
         case: c.id,
         rule: 'veterinary vitals missing',
         detail: 'mmColor, hydration, and mentation are required',
+      });
+    }
+    if (c.anamnesis.filter((q) => q.relevant).length < 4) {
+      violations.push({
+        case: c.id,
+        rule: 'case needs at least four relevant owner-history prompts',
+        detail: `${c.anamnesis.filter((q) => q.relevant).length} relevant prompts`,
+      });
+    }
+    if (c.testResults.length < 3) {
+      violations.push({
+        case: c.id,
+        rule: 'case needs at least three available test results',
+        detail: `${c.testResults.length} test results`,
       });
     }
   }

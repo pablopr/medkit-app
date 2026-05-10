@@ -10,7 +10,8 @@ import { useAttendingDebrief } from '../agents/useAttendingDebrief';
 import { buildDebriefRequest, summariseRequest } from '../agents/debriefRequest';
 import { saveEvalHistory, getEvalHistory, type EvalHistoryEntry } from '../data/evalHistory';
 import { POLYCLINIC_DIAGNOSIS_LABELS } from '../data/polyclinicPatients';
-import { estimateBarkibuSupport, type BarkibuSupportEstimate } from '../data/barkibuEstimate';
+import { estimateBarkibuSupport } from '../data/barkibuEstimate';
+import { BarkibuEstimateCard } from './BarkibuEstimateCard';
 import type {
   CaseEvaluationInput,
   CriterionResult,
@@ -119,14 +120,6 @@ function DomainRing({ label, score }: DomainRingProps) {
 
 function formatScore(n: number): string {
   return Number.isInteger(n) ? String(n) : n.toFixed(1);
-}
-
-function formatEuro(n: number): string {
-  return new Intl.NumberFormat('es-ES', {
-    style: 'currency',
-    currency: 'EUR',
-    maximumFractionDigits: Number.isInteger(n) ? 0 : 2,
-  }).format(n);
 }
 
 // ── Criterion — adapted to take CriterionResult + resolved cite ────
@@ -319,15 +312,15 @@ function StatusBanner({
         marginBottom: 22,
       }}
     >
-      <div style={{ position: 'absolute', top: -14, left: 24 }} className="chip butter">
+      <div className="chip butter" style={{ marginBottom: 14 }}>
         ATTENDING
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
         <div
           className="plush"
           style={{
-            width: 86,
-            height: 86,
+            width: 76,
+            height: 76,
             background: 'white',
             display: 'grid',
             placeItems: 'center',
@@ -335,10 +328,10 @@ function StatusBanner({
             flexShrink: 0,
           }}
         >
-          <Award size={42} strokeWidth={1.7} />
+          <Award size={36} strokeWidth={1.7} />
         </div>
-        <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: 32, lineHeight: 1.05, margin: '4px 0 8px' }}>{title}</h1>
+        <div style={{ flex: '1 1 360px', minWidth: 0 }}>
+          <h1 style={{ fontSize: 'clamp(26px, 4vw, 32px)', lineHeight: 1.08, margin: '0 0 8px' }}>{title}</h1>
           <div style={{ fontSize: 15, lineHeight: 1.5, fontWeight: 600, color: 'var(--ink)' }}>
             {body}
           </div>
@@ -501,7 +494,7 @@ export function DebriefScreen() {
   // mount, the live patient slot has been cleared so the 3D scene can play
   // the walk-out animation. Fall back to a still-seated patient (rare:
   // the screen was opened directly without ending the encounter).
-  const patient = reviewed?.patientSnapshot ?? state.lastEncounter ?? state.polyclinic.patient;
+  const patient = reviewed?.patientSnapshot ?? state.polyclinic.patient ?? state.lastEncounter;
   const c = useMemo<PatientCase | null>(() => {
     return patient?.case ?? (state.selectedCaseId ? getPatientCase(state.selectedCaseId) : null) ?? null;
   }, [patient, state.selectedCaseId]);
@@ -518,6 +511,7 @@ export function DebriefScreen() {
   const evaluation = reviewed?.evaluation ?? live.evaluation;
   const error = live.error;
   const partialNarration = live.partialNarration;
+  const barkibuEstimate = patient ? estimateBarkibuSupport(patient) : null;
 
   // Persist the evaluation the FIRST time it arrives in this session.
   const savedRef = useRef(false);
@@ -553,11 +547,7 @@ export function DebriefScreen() {
 
       <div style={{ padding: '28px 36px 60px', maxWidth: 1080, margin: '0 auto' }}>
         {!c || !patient ? (
-          <StatusBanner
-            title="No active case to debrief"
-            body="The encounter has already been cleared. Pick a new case from the library to start fresh."
-            bg="var(--cream-2)"
-          />
+          <EmptyDebriefState />
         ) : status === 'starting' || status === 'idle' ? (
           <StatusBanner
             title={'Preparing your debrief\u2026'}
@@ -582,11 +572,15 @@ export function DebriefScreen() {
           />
         )}
 
-        <div style={{ display: 'flex', gap: 12, marginTop: 22 }}>
+        {barkibuEstimate && !evaluation && (
+          <BarkibuEstimateCard estimate={barkibuEstimate} />
+        )}
+
+        <div style={{ display: 'flex', gap: 12, marginTop: 22, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <button
             type="button"
             className="btn-plush ghost"
-            style={{ flex: 1 }}
+            style={{ flex: '0 1 260px', minHeight: 46 }}
             onClick={() => store.setScreen('mode')}
           >
             {'\u2190 Back to polyclinic'}
@@ -594,12 +588,54 @@ export function DebriefScreen() {
           <button
             type="button"
             className="btn-plush primary"
-            style={{ flex: 1.6 }}
+            style={{ flex: '0 1 300px', minHeight: 46 }}
             onClick={() => store.setScreen('library')}
           >
             {'Next case \u2192'}
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function EmptyDebriefState() {
+  return (
+    <div style={{ display: 'grid', gap: 16 }}>
+      <StatusBanner
+        title="No completed encounter"
+        body="There is no closed consultation snapshot attached to this debrief."
+        bg="var(--cream-2)"
+      />
+      <div
+        className="plush"
+        style={{
+          padding: 18,
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 16,
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          background: 'white',
+        }}
+      >
+        <div style={{ minWidth: 220, flex: '1 1 360px' }}>
+          <div className="chip butter" style={{ marginBottom: 10 }}>
+            Barkibu cost view
+          </div>
+          <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 4 }}>No bill yet</div>
+          <div style={{ fontWeight: 650, color: 'var(--ink-2)', fontSize: 13, lineHeight: 1.45 }}>
+            Barkibu estimates use the tests, treatments, prescriptions, and consultation line items from a completed case.
+          </div>
+        </div>
+        <button
+          type="button"
+          className="btn-plush primary"
+          style={{ minHeight: 44, flex: '0 1 180px' }}
+          onClick={() => store.setScreen('library')}
+        >
+          Open cases
+        </button>
       </div>
     </div>
   );
@@ -810,109 +846,6 @@ function EvaluationBody({ evaluation, patient, c }: BodyProps) {
   );
 }
 
-function BarkibuEstimateCard({ estimate }: { estimate: BarkibuSupportEstimate }) {
-  const visibleItems = estimate.lineItems.slice(0, 7);
-  const hiddenCount = estimate.lineItems.length - visibleItems.length;
-
-  return (
-    <div
-      className="plush-lg popin"
-      style={{
-        padding: 18,
-        marginBottom: 22,
-        background: 'var(--sky)',
-        border: '1px solid rgba(85,123,144,0.25)',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 18 }}>
-        <div style={{ flex: 1 }}>
-          <div className="chip butter" style={{ marginBottom: 10 }}>
-            BARKIBU COST VIEW
-          </div>
-          <h2 style={{ margin: '0 0 6px', fontSize: 24, lineHeight: 1.1 }}>
-            Barkibu can help with the veterinary bill
-          </h2>
-          <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink-2)', lineHeight: 1.45 }}>
-            This simulation applies an 80% reimbursement estimate to the actions you took, so the owner sees how insurance can reduce the surprise of animal healthcare costs.
-          </div>
-        </div>
-        <div
-          className="plush"
-          style={{
-            background: 'white',
-            padding: 14,
-            minWidth: 220,
-            display: 'grid',
-            gap: 8,
-          }}
-        >
-          <MoneyRow label="Estimated bill" value={estimate.subtotal} />
-          <MoneyRow label="Barkibu estimate" value={-estimate.estimatedCoveredAmount} tone="var(--mint-deep)" />
-          <div style={{ height: 2, background: 'var(--line)', opacity: 0.25 }} />
-          <MoneyRow label="Owner pays" value={estimate.estimatedOwnerCost} strong />
-        </div>
-      </div>
-
-      <div
-        style={{
-          marginTop: 14,
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: 8,
-        }}
-      >
-        {visibleItems.map((item) => (
-          <div
-            key={item.id}
-            className="plush"
-            style={{
-              background: 'white',
-              padding: '8px 10px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              gap: 10,
-              fontSize: 12,
-              fontWeight: 800,
-            }}
-          >
-            <span>{item.label}</span>
-            <span style={{ whiteSpace: 'nowrap' }}>{formatEuro(item.amount)}</span>
-          </div>
-        ))}
-        {hiddenCount > 0 && (
-          <div className="plush" style={{ background: 'white', padding: '8px 10px', fontSize: 12, fontWeight: 800 }}>
-            +{hiddenCount} more line item{hiddenCount === 1 ? '' : 's'}
-          </div>
-        )}
-      </div>
-
-      <div style={{ marginTop: 12, fontSize: 11, fontWeight: 700, color: 'var(--ink-2)', lineHeight: 1.45 }}>
-        {estimate.disclaimer}
-      </div>
-    </div>
-  );
-}
-
-function MoneyRow({
-  label,
-  value,
-  strong = false,
-  tone = 'var(--ink)',
-}: {
-  label: string;
-  value: number;
-  strong?: boolean;
-  tone?: string;
-}) {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline' }}>
-      <span style={{ fontSize: 12, fontWeight: strong ? 900 : 800, color: 'var(--ink-2)' }}>{label}</span>
-      <span style={{ fontSize: strong ? 20 : 15, fontWeight: 900, color: tone }}>
-        {value < 0 ? `-${formatEuro(Math.abs(value))}` : formatEuro(value)}
-      </span>
-    </div>
-  );
-}
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (

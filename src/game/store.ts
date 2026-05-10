@@ -87,20 +87,6 @@ function toPatientCase(c: MedKitCase): PatientCase {
   };
 }
 
-/** True when the trainee actually engaged with the patient — asked a
- *  history question, ordered a test, gave a treatment, prescribed, or
- *  submitted a diagnosis. A freshly-arrived patient with no interaction
- *  yet returns false. Used to guard `lastEncounter` overwrites. */
-function hasEncounterActivity(p: ActivePatient): boolean {
-  return (
-    p.askedQuestionIds.length > 0 ||
-    p.orderedTestIds.length > 0 ||
-    p.givenTreatmentIds.length > 0 ||
-    (p.prescriptions?.length ?? 0) > 0 ||
-    p.submittedDiagnosisId !== null
-  );
-}
-
 function toActivePatient(c: MedKitCase): ActivePatient {
   const now = Date.now();
   return {
@@ -224,18 +210,15 @@ class Store {
    *  Snapshots the encounter into `lastEncounter` so DebriefScreen can grade
    *  it after the patient has left the chair.
    *
-   *  Only overwrites `lastEncounter` if the snapshot has actual encounter
-   *  activity. Otherwise the previous snapshot is preserved. This matters
-   *  because the Dispatch flow auto-loads the next patient — if the trainee
-   *  then clicks "End consultation" before engaging that fresh patient,
-   *  the empty new-patient snapshot would otherwise clobber the real one
-   *  and the debrief request would arrive with empty arrays. */
+   *  Always snapshots the current chart, even if the trainee ended without
+   *  ordering tests or prescribing. The debrief and Barkibu estimate still
+   *  need a completed consultation record so they can show the baseline
+   *  consult fee and grade the omitted clinical work. */
   finishPolyclinicCase = () => {
     const snapshot = this.state.polyclinic.patient;
-    const keepSnapshot = snapshot && hasEncounterActivity(snapshot);
     this.set({
       polyclinic: { ...this.state.polyclinic, patient: null },
-      lastEncounter: keepSnapshot ? snapshot : this.state.lastEncounter,
+      lastEncounter: snapshot ?? this.state.lastEncounter,
     });
   };
 

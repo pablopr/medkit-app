@@ -29,7 +29,7 @@ export interface GuidelineRecommendation {
 
 export interface Guideline {
   id: string;
-  body: 'AAHA' | 'WSAVA' | 'RECOVER' | 'ISFM' | 'ACVIM' | 'AAFP';
+  body: 'AAHA' | 'WSAVA' | 'RECOVER' | 'ISFM' | 'ACVIM' | 'AAFP' | 'IRIS' | 'MERCK' | 'CORNELL';
   year: number;
   region: 'US' | 'EU' | 'Global';
   title: string;
@@ -205,6 +205,132 @@ export const GUIDELINES: Guideline[] = [
         text: 'Allergic skin disease plans should combine parasite control, infection treatment when present, itch relief, and owner follow-up.',
         topic: 'itch treatment plan',
         system: 'dermatology',
+      },
+    ],
+  },
+  {
+    id: 'wsava-pancreatitis-2011',
+    body: 'WSAVA',
+    year: 2011,
+    region: 'Global',
+    title: 'Diagnosis and Management of Canine Acute Pancreatitis',
+    url: 'https://www.ivis.org/library/wsava/wsava-annual-congress-korea-2011/diagnosis-and-management-of-canine-acute',
+    verificationStatus: 'needs-verification',
+    lastVerified: '2026-05-10',
+    notes: 'Simulator summary based on WSAVA congress education material for pancreatitis pattern recognition and supportive care.',
+    recommendations: [
+      {
+        recId: 'wsava-pancreatitis-diagnostic-pattern',
+        text: 'Vomiting with cranial abdominal pain and compatible laboratory or imaging findings should prompt a pancreatitis workup while ruling out other gastrointestinal disease.',
+        topic: 'pancreatitis workup',
+        system: 'gastrointestinal',
+      },
+      {
+        recId: 'wsava-pancreatitis-supportive-care',
+        text: 'Acute pancreatitis management centers on hydration, antiemetic support, analgesia, nutrition planning, and monitoring for complications.',
+        topic: 'pancreatitis management',
+        system: 'gastrointestinal',
+      },
+    ],
+  },
+  {
+    id: 'iris-ckd-2023',
+    body: 'IRIS',
+    year: 2023,
+    region: 'Global',
+    title: 'IRIS Staging and Treatment Recommendations for CKD',
+    url: 'https://www.iris-kidney.com/iris-guidelines-1',
+    pdfUrl: 'https://www.iris-kidney.com/s/IRIS_CAT_Treatment_Recommendations_2023.pdf',
+    verificationStatus: 'needs-verification',
+    lastVerified: '2026-05-10',
+    notes: 'Simulator summary for CKD staging, substaging, blood pressure, proteinuria, and owner follow-up.',
+    recommendations: [
+      {
+        recId: 'iris-ckd-stage-substage',
+        text: 'Stage stable CKD using kidney markers and urine concentration, then substage by proteinuria and systemic blood pressure.',
+        topic: 'CKD staging',
+        system: 'renal',
+      },
+      {
+        recId: 'iris-ckd-treatment-monitoring',
+        text: 'CKD plans should monitor hydration, appetite, body weight, phosphorus, blood pressure, proteinuria, and owner ability to maintain nutrition.',
+        topic: 'CKD monitoring',
+        system: 'renal',
+      },
+    ],
+  },
+  {
+    id: 'aaha-pain-management-2022',
+    body: 'AAHA',
+    year: 2022,
+    region: 'US',
+    title: '2022 AAHA Pain Management Guidelines for Dogs and Cats',
+    url: 'https://www.aaha.org/resources/2022-aaha-pain-management-guidelines-for-dogs-and-cats/',
+    verificationStatus: 'needs-verification',
+    lastVerified: '2026-05-10',
+    notes: 'Simulator summary for pain assessment, multimodal analgesia, owner instructions, and follow-up.',
+    recommendations: [
+      {
+        recId: 'aaha-pain-assess-function',
+        text: 'Pain assessment should include patient behavior, function, orthopedic or neurologic findings, and owner-observed mobility changes.',
+        topic: 'pain assessment',
+        system: 'musculoskeletal',
+      },
+      {
+        recId: 'aaha-pain-multimodal-plan',
+        text: 'Pain plans should combine appropriate analgesia, activity guidance, nonpharmacologic care, adverse-effect counseling, and reassessment.',
+        topic: 'pain management',
+        system: 'musculoskeletal',
+      },
+    ],
+  },
+  {
+    id: 'merck-feline-asthma-2024',
+    body: 'MERCK',
+    year: 2024,
+    region: 'Global',
+    title: 'Feline Bronchial Asthma',
+    url: 'https://www.merckvetmanual.com/respiratory-system/respiratory-diseases-of-small-animals/feline-bronchial-asthma',
+    verificationStatus: 'needs-verification',
+    lastVerified: '2026-05-10',
+    notes: 'Simulator summary for feline asthma recognition, rule-outs, oxygen/stabilization, and owner environmental counseling.',
+    recommendations: [
+      {
+        recId: 'merck-asthma-rule-out-distress',
+        text: 'Cats with cough, wheeze, tachypnea, or open-mouth breathing require assessment for respiratory distress and rule-outs such as heart disease, infection, parasites, or foreign body.',
+        topic: 'feline respiratory distress',
+        system: 'respiratory',
+      },
+      {
+        recId: 'merck-asthma-anti-inflammatory-plan',
+        text: 'Feline asthma plans commonly include anti-inflammatory treatment, bronchodilator support when indicated, environmental trigger reduction, and follow-up.',
+        topic: 'feline asthma management',
+        system: 'respiratory',
+      },
+    ],
+  },
+  {
+    id: 'cornell-corneal-ulcers',
+    body: 'CORNELL',
+    year: 2026,
+    region: 'US',
+    title: 'Corneal Ulcers',
+    url: 'https://www.vet.cornell.edu/departments-centers-and-institutes/cornell-feline-health-center/health-information/feline-health-topics/corneal-ulcers',
+    verificationStatus: 'needs-verification',
+    lastVerified: '2026-05-10',
+    notes: 'Simulator summary for painful eye triage, fluorescein confirmation, self-trauma prevention, and recheck planning.',
+    recommendations: [
+      {
+        recId: 'cornell-ulcer-fluorescein-confirm',
+        text: 'A suspected corneal ulcer should be confirmed with fluorescein staining and assessed for depth, infection risk, and complications.',
+        topic: 'corneal ulcer diagnosis',
+        system: 'other',
+      },
+      {
+        recId: 'cornell-ulcer-protect-recheck',
+        text: 'Corneal ulcer plans should prevent self-trauma, use appropriate topical therapy when indicated, and define a short recheck window.',
+        topic: 'corneal ulcer management',
+        system: 'other',
       },
     ],
   },

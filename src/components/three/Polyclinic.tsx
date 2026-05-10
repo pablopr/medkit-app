@@ -275,50 +275,128 @@ function FloorStripe({ zStart, zEnd, x, color }: { zStart: number; zEnd: number;
   return <>{stripes}</>;
 }
 
-/** Padded armchair for the patient. Rotated so the sitter faces the desk.
- *  Rounded edges everywhere — visually coherent with the stylized
- *  character. No more visible knees-through-apron since the character
- *  now has proper bent legs. */
+/** Upholstered guest chair for the pet parent. Rotated so the sitter faces
+ *  the desk. The old armchair read as a toy sofa; this version uses thinner
+ *  metal legs, separate cushions, seam lines, and a realistic back angle. */
 function PatientChair({ position, rotationY = 0 }: { position: [number, number, number]; rotationY?: number }) {
-  const leatherProps = { color: PALETTE.leather, roughness: 0.75, metalness: 0.05 };
+  const leatherProps = { color: '#202729', roughness: 0.68, metalness: 0.02 };
+  const metalProps = { color: '#8f9692', roughness: 0.32, metalness: 0.62 };
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
-      {/* Base / skirt — shorter in z (the seat-front direction after the
-          chair's rotationY flip) so the seated patient's shoes extend
-          past the front edge of the chair and are clearly visible. */}
-      <RoundedBox args={[0.76, 0.42, 0.52]} radius={0.08} smoothness={3} position={[0, 0.21, -0.12]} castShadow receiveShadow>
-        <meshStandardMaterial {...leatherProps} />
-      </RoundedBox>
-      {/* seat cushion — slightly inset on top */}
-      <RoundedBox args={[0.68, 0.14, 0.68]} radius={0.07} smoothness={3} position={[0, 0.5, 0]} castShadow>
-        <meshStandardMaterial color="#4a352a" roughness={0.72} />
-      </RoundedBox>
-      {/* cushion tuft — dimple in the middle */}
-      <mesh position={[0, 0.58, 0]}>
-        <sphereGeometry args={[0.03, 10, 10]} />
-        <meshStandardMaterial color="#2a1a14" />
-      </mesh>
-      {/* backrest — taller, cushioned */}
-      <RoundedBox args={[0.72, 1.0, 0.16]} radius={0.08} smoothness={3} position={[0, 1.0, -0.32]} castShadow>
-        <meshStandardMaterial {...leatherProps} />
-      </RoundedBox>
-      {/* backrest cushion face */}
-      <RoundedBox args={[0.6, 0.9, 0.06]} radius={0.06} smoothness={3} position={[0, 1.0, -0.24]} castShadow>
-        <meshStandardMaterial color="#4a352a" roughness={0.72} />
-      </RoundedBox>
-      {/* armrests — rounded */}
-      {[-0.38, 0.38].map((lx, i) => (
-        <RoundedBox key={`arm-${i}`} args={[0.12, 0.36, 0.64]} radius={0.05} smoothness={3} position={[lx, 0.68, 0]} castShadow>
-          <meshStandardMaterial {...leatherProps} />
-        </RoundedBox>
+      {/* thin steel sled frame */}
+      {[-0.34, 0.34].map((x) => (
+        <group key={`chair-frame-${x}`} position={[x, 0, 0]}>
+          <mesh position={[0, 0.26, 0.2]} rotation={[0.13, 0, 0]} castShadow>
+            <cylinderGeometry args={[0.018, 0.018, 0.72, 12]} />
+            <meshStandardMaterial {...metalProps} />
+          </mesh>
+          <mesh position={[0, 0.26, -0.33]} rotation={[-0.2, 0, 0]} castShadow>
+            <cylinderGeometry args={[0.018, 0.018, 0.8, 12]} />
+            <meshStandardMaterial {...metalProps} />
+          </mesh>
+          <mesh position={[0, 0.04, -0.04]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+            <cylinderGeometry args={[0.016, 0.016, 0.86, 12]} />
+            <meshStandardMaterial {...metalProps} />
+          </mesh>
+        </group>
       ))}
-      {/* brass foot-cap accents */}
-      {([[-0.3, -0.3], [0.3, -0.3], [-0.3, 0.3], [0.3, 0.3]] as const).map(([lx, lz], i) => (
-        <mesh key={`cap-${i}`} position={[lx, 0.03, lz]} castShadow>
-          <cylinderGeometry args={[0.04, 0.04, 0.06, 12]} />
-          <meshStandardMaterial color={PALETTE.brass} metalness={0.7} roughness={0.35} />
+
+      {/* seat and back cushions */}
+      <RoundedBox args={[0.78, 0.16, 0.72]} radius={0.06} smoothness={4} position={[0, 0.48, 0.03]} castShadow receiveShadow>
+        <meshStandardMaterial {...leatherProps} />
+      </RoundedBox>
+      <RoundedBox args={[0.76, 0.9, 0.14]} radius={0.06} smoothness={4} position={[0, 1.02, -0.34]} rotation={[-0.12, 0, 0]} castShadow>
+        <meshStandardMaterial color="#252d2f" roughness={0.66} metalness={0.02} />
+      </RoundedBox>
+
+      {/* stitched cushion seams */}
+      {[-0.18, 0.18].map((x) => (
+        <mesh key={`seat-seam-${x}`} position={[x, 0.566, 0.03]} rotation={[-Math.PI / 2, 0, 0]}>
+          <boxGeometry args={[0.012, 0.62, 0.006]} />
+          <meshStandardMaterial color="#131719" roughness={0.9} />
         </mesh>
       ))}
+      {[0.8, 1.02, 1.24].map((y) => (
+        <mesh key={`back-seam-${y}`} position={[0, y, -0.255]} rotation={[-0.12, 0, 0]}>
+          <boxGeometry args={[0.58, 0.012, 0.01]} />
+          <meshStandardMaterial color="#151a1c" roughness={0.9} />
+        </mesh>
+      ))}
+
+      {/* slim arms, not bulky sofa blocks */}
+      {[-0.47, 0.47].map((x) => (
+        <group key={`guest-arm-${x}`} position={[x, 0, 0]}>
+          <mesh position={[0, 0.66, 0.0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+            <cylinderGeometry args={[0.025, 0.025, 0.72, 14]} />
+            <meshStandardMaterial {...metalProps} />
+          </mesh>
+          <RoundedBox args={[0.07, 0.08, 0.62]} radius={0.03} smoothness={3} position={[0, 0.7, 0.02]} castShadow>
+            <meshStandardMaterial color="#22292b" roughness={0.72} />
+          </RoundedBox>
+        </group>
+      ))}
+
+      {/* small plastic glides */}
+      {([[-0.34, -0.47], [0.34, -0.47], [-0.34, 0.36], [0.34, 0.36]] as const).map(([x, z]) => (
+        <mesh key={`chair-glide-${x}-${z}`} position={[x, 0.02, z]} castShadow>
+          <cylinderGeometry args={[0.045, 0.045, 0.025, 12]} />
+          <meshStandardMaterial color="#161a1b" roughness={0.85} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function TubeBetween({
+  start,
+  end,
+  radius,
+  color,
+  metalness = 0,
+  roughness = 0.7,
+}: {
+  start: [number, number, number];
+  end: [number, number, number];
+  radius: number;
+  color: string;
+  metalness?: number;
+  roughness?: number;
+}) {
+  const transform = useMemo(() => {
+    const a = new THREE.Vector3(...start);
+    const b = new THREE.Vector3(...end);
+    const direction = b.clone().sub(a);
+    const length = direction.length();
+    const midpoint = a.clone().add(b).multiplyScalar(0.5);
+    const quaternion = new THREE.Quaternion();
+    if (length > 0.001) {
+      quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
+    }
+    return { length, midpoint, quaternion };
+  }, [start[0], start[1], start[2], end[0], end[1], end[2]]);
+
+  if (transform.length <= 0.001) return null;
+
+  return (
+    <mesh position={transform.midpoint} quaternion={transform.quaternion} castShadow>
+      <cylinderGeometry args={[radius, radius, transform.length, 10]} />
+      <meshStandardMaterial color={color} roughness={roughness} metalness={metalness} />
+    </mesh>
+  );
+}
+
+function OwnerDogLeash() {
+  const hand: [number, number, number] = [0.34, 0.84, PATIENT_CHAIR_POS[2] - 0.15];
+  const slack: [number, number, number] = [-0.18, 0.62, PATIENT_CHAIR_POS[2] + 0.02];
+  const collar: [number, number, number] = [-0.72, 0.58, PATIENT_CHAIR_POS[2] - 0.26];
+  return (
+    <group>
+      <TubeBetween start={hand} end={slack} radius={0.009} color="#2b2420" roughness={0.82} />
+      <TubeBetween start={slack} end={collar} radius={0.009} color="#2b2420" roughness={0.82} />
+      <mesh position={hand} castShadow>
+        <sphereGeometry args={[0.025, 10, 10]} />
+        <meshStandardMaterial color="#2b2420" roughness={0.75} />
+      </mesh>
     </group>
   );
 }
@@ -2039,61 +2117,117 @@ function DogPatientModel({
   const tail = useRef<Group>(null);
   const urgent = severity === 'urgent';
   const critical = severity === 'critical';
+  const breathingRate = critical ? 2.2 : urgent ? 1.8 : 1.2;
   useFrame((state) => {
     const t = state.clock.elapsedTime;
     if (group.current) {
-      const breath = 1 + Math.sin(t * (critical ? 2.2 : 1.4)) * 0.025;
+      const breath = 1 + Math.sin(t * breathingRate) * (critical ? 0.018 : 0.012);
       group.current.scale.y = breath;
     }
-    if (tail.current) tail.current.rotation.z = Math.sin(t * (urgent ? 7.5 : 3.5)) * 0.28 + 0.55;
+    if (tail.current) tail.current.rotation.z = Math.sin(t * (urgent ? 7.5 : 3.5)) * 0.22 + 0.5;
   });
   const bodyY = critical ? 0.24 : 0.38;
+  const headY = critical ? 0.43 : 0.63;
+  const collarY = critical ? 0.42 : 0.57;
   return (
     <group ref={group}>
-      <mesh position={[0, bodyY, 0]} scale={[0.44, critical ? 0.16 : 0.22, 0.82]} castShadow>
-        <sphereGeometry args={[1, 28, 18]} />
-        <meshStandardMaterial color={color} roughness={0.9} />
+      {/* rib cage and abdomen overlap to avoid the single-sausage silhouette */}
+      <mesh position={[0, bodyY + 0.03, -0.16]} scale={[0.48, critical ? 0.17 : 0.25, 0.58]} castShadow receiveShadow>
+        <sphereGeometry args={[1, 36, 22]} />
+        <meshStandardMaterial color={color} roughness={0.86} />
       </mesh>
-      <mesh position={[0, critical ? 0.42 : 0.6, -0.63]} scale={[0.25, 0.23, 0.25]} castShadow>
-        <sphereGeometry args={[1, 20, 16]} />
+      <mesh position={[0, bodyY, 0.34]} scale={[0.39, critical ? 0.14 : 0.2, 0.5]} castShadow receiveShadow>
+        <sphereGeometry args={[1, 30, 18]} />
         <meshStandardMaterial color={color} roughness={0.88} />
       </mesh>
-      <mesh position={[0, critical ? 0.39 : 0.55, -0.87]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-        <cylinderGeometry args={[0.105, 0.055, 0.28, 14]} />
-        <meshStandardMaterial color="#6f4a35" roughness={0.9} />
+      <mesh position={[0, bodyY + 0.06, -0.35]} scale={[0.22, critical ? 0.08 : 0.12, 0.22]} castShadow>
+        <sphereGeometry args={[1, 20, 12]} />
+        <meshStandardMaterial color="#f1dec0" roughness={0.9} />
+      </mesh>
+
+      {/* head, muzzle, jaw */}
+      <mesh position={[0, headY, -0.62]} scale={[0.26, 0.22, 0.24]} castShadow>
+        <sphereGeometry args={[1, 30, 20]} />
+        <meshStandardMaterial color={color} roughness={0.88} />
+      </mesh>
+      <mesh position={[0, headY - 0.05, -0.86]} rotation={[Math.PI / 2, 0, 0]} scale={[1.08, 0.82, 1]} castShadow>
+        <cylinderGeometry args={[0.12, 0.075, 0.32, 18]} />
+        <meshStandardMaterial color="#7d5a42" roughness={0.9} />
+      </mesh>
+      <mesh position={[0, headY - 0.11, -0.88]} rotation={[Math.PI / 2, 0, 0]} scale={[1.0, 0.45, 1]} castShadow>
+        <cylinderGeometry args={[0.105, 0.08, 0.24, 16]} />
+        <meshStandardMaterial color="#f0d8bd" roughness={0.92} />
       </mesh>
       {[-0.14, 0.14].map((x, i) => (
-        <mesh key={`dog-ear-${i}`} position={[x, critical ? 0.56 : 0.78, -0.56]} rotation={[0.35, 0, x < 0 ? 0.7 : -0.7]} castShadow>
-          <coneGeometry args={[0.08, 0.22, 12]} />
-          <meshStandardMaterial color="#4a3428" roughness={0.92} />
-        </mesh>
+        <group key={`dog-ear-${i}`} position={[x, critical ? 0.55 : 0.76, -0.56]} rotation={[0.45, x < 0 ? -0.12 : 0.12, x < 0 ? 0.9 : -0.9]}>
+          <mesh castShadow scale={[0.75, 1.15, 0.42]}>
+            <sphereGeometry args={[0.1, 18, 12]} />
+            <meshStandardMaterial color="#4b3327" roughness={0.92} />
+          </mesh>
+          <mesh position={[0, -0.06, 0.01]} castShadow scale={[0.55, 0.9, 0.28]}>
+            <sphereGeometry args={[0.1, 16, 10]} />
+            <meshStandardMaterial color="#3a2720" roughness={0.94} />
+          </mesh>
+        </group>
       ))}
-      <mesh position={[0, critical ? 0.42 : 0.58, -0.48]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.19, 0.018, 8, 28]} />
+      <mesh position={[0, collarY, -0.47]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.19, 0.018, 8, 34]} />
         <meshStandardMaterial color={PALETTE.barkibuMint} roughness={0.7} />
       </mesh>
       {[-0.1, 0.1].map((x, i) => (
-        <mesh key={`dog-eye-${i}`} position={[x, critical ? 0.45 : 0.64, -0.81]}>
+        <mesh key={`dog-eye-${i}`} position={[x, critical ? 0.46 : 0.66, -0.79]}>
           <sphereGeometry args={[0.018, 8, 8]} />
           <meshStandardMaterial color="#17110d" />
         </mesh>
       ))}
-      <mesh position={[0, critical ? 0.36 : 0.53, -0.93]}>
-        <sphereGeometry args={[0.022, 8, 8]} />
+      {[-0.1, 0.1].map((x) => (
+        <mesh key={`dog-brow-${x}`} position={[x, critical ? 0.5 : 0.7, -0.79]} rotation={[0, 0, x < 0 ? 0.25 : -0.25]}>
+          <boxGeometry args={[0.055, 0.01, 0.008]} />
+          <meshStandardMaterial color="#2b1d17" roughness={0.9} />
+        </mesh>
+      ))}
+      <mesh position={[0, critical ? 0.36 : 0.52, -1.03]} scale={[1.22, 0.8, 0.82]}>
+        <sphereGeometry args={[0.028, 12, 10]} />
         <meshStandardMaterial color="#17110d" />
       </mesh>
-      {[-0.28, 0.28].flatMap((x) =>
-        [-0.34, 0.34].map((z, i) => (
-          <mesh key={`dog-leg-${x}-${i}`} position={[x, critical ? 0.12 : 0.2, z]} castShadow>
-            <cylinderGeometry args={[0.055, 0.065, critical ? 0.22 : 0.4, 10]} />
-            <meshStandardMaterial color={color} roughness={0.78} />
-          </mesh>
-        )),
+      {urgent && (
+        <mesh position={[0, 0.48, -0.99]} rotation={[0.25, 0, 0]} castShadow>
+          <boxGeometry args={[0.07, 0.018, 0.05]} />
+          <meshStandardMaterial color="#c45b55" roughness={0.75} />
+        </mesh>
       )}
+
+      {/* legs with separate paws and shoulder/hip mass */}
+      {[-0.27, 0.27].map((x) => (
+        <group key={`front-leg-${x}`} position={[x, 0, -0.32]}>
+          <mesh position={[0, critical ? 0.17 : 0.27, 0]} rotation={[0.08, 0, x < 0 ? -0.04 : 0.04]} castShadow>
+            <cylinderGeometry args={[0.06, 0.052, critical ? 0.24 : 0.45, 12]} />
+            <meshStandardMaterial color={color} roughness={0.82} />
+          </mesh>
+          <RoundedBox args={[0.15, 0.055, 0.22]} radius={0.025} smoothness={2} position={[0, 0.035, -0.05]} castShadow>
+            <meshStandardMaterial color="#5f3f2e" roughness={0.88} />
+          </RoundedBox>
+        </group>
+      ))}
+      {[-0.29, 0.29].map((x) => (
+        <group key={`rear-leg-${x}`} position={[x, 0, 0.38]}>
+          <mesh position={[0, critical ? 0.15 : 0.24, 0.02]} rotation={[-0.2, 0, x < 0 ? 0.04 : -0.04]} castShadow>
+            <cylinderGeometry args={[0.072, 0.058, critical ? 0.24 : 0.42, 12]} />
+            <meshStandardMaterial color={color} roughness={0.82} />
+          </mesh>
+          <RoundedBox args={[0.17, 0.055, 0.24]} radius={0.025} smoothness={2} position={[0, 0.035, 0.05]} castShadow>
+            <meshStandardMaterial color="#5f3f2e" roughness={0.88} />
+          </RoundedBox>
+        </group>
+      ))}
       <group ref={tail} position={[0, critical ? 0.34 : 0.52, 0.65]} rotation={[0.2, 0, 0.55]}>
-        <mesh position={[0, 0.14, 0]} rotation={[0.4, 0, 0]} castShadow>
-          <cylinderGeometry args={[0.035, 0.055, 0.34, 10]} />
+        <mesh position={[0, 0.13, 0.02]} rotation={[0.58, 0, 0]} castShadow>
+          <cylinderGeometry args={[0.028, 0.055, 0.36, 12]} />
           <meshStandardMaterial color={color} roughness={0.8} />
+        </mesh>
+        <mesh position={[0, 0.3, 0.1]} rotation={[0.8, 0, 0]} castShadow>
+          <cylinderGeometry args={[0.018, 0.03, 0.25, 10]} />
+          <meshStandardMaterial color={color} roughness={0.82} />
         </mesh>
       </group>
     </group>
@@ -3379,6 +3513,7 @@ export function Polyclinic({
           }}
         />
       )}
+      {patient?.case.species === 'dog' && <OwnerDogLeash />}
       {/* Single context-aware interactable: examines the patient when one
            is seated, otherwise opens the archive. */}
       <SeatedDoctorInteractable patientName={patient?.case.ownerName ?? null} />

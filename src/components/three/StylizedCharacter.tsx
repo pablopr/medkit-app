@@ -283,6 +283,35 @@ export function StylizedCharacter({
           <meshStandardMaterial color={col.shirt} roughness={0.8} />
         </RoundedBox>
 
+        {!doctor && (
+          <>
+            {/* layered clothing details keep the pet parent from reading as
+                a single toy block, while staying in the low-poly language. */}
+            <mesh position={[0, 0.58, 0.118]} rotation={[0, 0, 0.75]}>
+              <boxGeometry args={[0.13, 0.028, 0.012]} />
+              <meshStandardMaterial color="#f0e8dc" roughness={0.84} />
+            </mesh>
+            <mesh position={[0, 0.58, 0.119]} rotation={[0, 0, -0.75]}>
+              <boxGeometry args={[0.13, 0.028, 0.012]} />
+              <meshStandardMaterial color="#f0e8dc" roughness={0.84} />
+            </mesh>
+            <mesh position={[0, 0.35, 0.122]}>
+              <boxGeometry args={[0.018, 0.32, 0.012]} />
+              <meshStandardMaterial color="#141616" roughness={0.82} />
+            </mesh>
+            {[0.28, 0.38, 0.48].map((y) => (
+              <mesh key={`shirt-button-${y}`} position={[0, y, 0.132]}>
+                <sphereGeometry args={[0.012, 8, 8]} />
+                <meshStandardMaterial color="#f2eee6" roughness={0.65} />
+              </mesh>
+            ))}
+            <mesh position={[0, 0.08, 0.13]}>
+              <boxGeometry args={[0.34 * hipWidthMul, 0.025, 0.012]} />
+              <meshStandardMaterial color="#1d1b18" roughness={0.78} />
+            </mesh>
+          </>
+        )}
+
         {/* Heavy build is conveyed via torso/hip width + depth multipliers
             above. We deliberately do NOT add a forward belly bulge — a sphere
             on the chest reads as a pregnant abdomen, especially on male
