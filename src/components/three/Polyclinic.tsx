@@ -13,8 +13,9 @@ import { parentGenderForId } from '../../voice/patientPersona';
 
 // ───────── World layout — a doctor's private office (muayenehane) ─────────
 //
-// No exam bed. The patient walks in, sits on a patient chair across from
-// the desk, talks to the (seated) doctor, then walks out.
+// No exam bed. The pet owner walks in with the animal, stops at the
+// consultation point across from the desk, talks to the (seated) doctor,
+// then walks out with the animal.
 //
 //            z = −10 ┌─────────────────────────┐       BACK WALL (diplomas)
 //                    │                          │
@@ -24,7 +25,7 @@ import { parentGenderForId } from '../../voice/patientPersona';
 //                    │      │   DESK    │       │   doctor sits behind it
 //                    │      └───────────┘       │
 //                    │                          │
-//                    │       [patient chair]    │   patient sits facing doc
+//                    │      [owner + animal]    │   standing consult point
 //                    │                          │
 //            z = −2  ├──────── ⌐ ──────────────┤       door (into corridor)
 //                    │                          │
@@ -46,13 +47,15 @@ const DOOR_X = 0;
 const DESK_POS: [number, number, number] = [0, 0, ROOM_BACK_Z + 1.5];
 /** Doctor sits behind the desk (closer to the back wall). */
 export const DOCTOR_CHAIR_POS: [number, number, number] = [0, 0, ROOM_BACK_Z + 0.55];
-/** Patient chair sits across the desk from the doctor. This is also the
- *  interactable anchor — E / T are triggered near this position. */
-export const PATIENT_CHAIR_POS: [number, number, number] = [0, 0, ROOM_BACK_Z + 4.5];
+/** Standing consultation point across the desk from the doctor. This is also
+ *  the interactable anchor — E / T are triggered near this position.
+ *  Export name is kept for compatibility with camera/voice-panel code. */
+const CONSULTATION_SPOT_POS: [number, number, number] = [0, 0, ROOM_BACK_Z + 4.5];
+export const PATIENT_CHAIR_POS = CONSULTATION_SPOT_POS;
 /** Where the walking patient NPC starts (corridor side of the door) and
- *  where they end up (in the patient chair). */
+ *  where the owner and animal end up. */
 const PATIENT_SPAWN: [number, number, number] = [DOOR_X, 0, ROOM_FRONT_Z + 4];
-const PATIENT_AT_SEAT: [number, number, number] = [PATIENT_CHAIR_POS[0], 0, PATIENT_CHAIR_POS[2]];
+const PATIENT_AT_CONSULT: [number, number, number] = [PATIENT_CHAIR_POS[0], 0, PATIENT_CHAIR_POS[2]];
 
 const OUTER_DEPTH = CORRIDOR_FRONT_Z - WORLD_BACK_Z;
 const OUTER_CENTER_Z = (CORRIDOR_FRONT_Z + WORLD_BACK_Z) / 2;
@@ -128,7 +131,6 @@ export const POLYCLINIC_COLLIDERS: WallCollider[] = [
   })),
   // Furniture colliders
   { x: DESK_POS[0], z: DESK_POS[2], w: 2.6, d: 1.0 },
-  { x: PATIENT_CHAIR_POS[0], z: PATIENT_CHAIR_POS[2], w: 0.9, d: 0.9 },
   // Bookshelf on the left
   { x: WORLD_LEFT_X + 0.6, z: ROOM_BACK_Z + 1.2, w: 1.1, d: 0.5 },
   // Examination couch — pushed flush against the right wall; long axis along
@@ -275,78 +277,6 @@ function FloorStripe({ zStart, zEnd, x, color }: { zStart: number; zEnd: number;
   return <>{stripes}</>;
 }
 
-/** Upholstered guest chair for the pet parent. Rotated so the sitter faces
- *  the desk. The old armchair read as a toy sofa; this version uses thinner
- *  metal legs, separate cushions, seam lines, and a realistic back angle. */
-function PatientChair({ position, rotationY = 0 }: { position: [number, number, number]; rotationY?: number }) {
-  const leatherProps = { color: '#202729', roughness: 0.68, metalness: 0.02 };
-  const metalProps = { color: '#8f9692', roughness: 0.32, metalness: 0.62 };
-  return (
-    <group position={position} rotation={[0, rotationY, 0]}>
-      {/* thin steel sled frame */}
-      {[-0.34, 0.34].map((x) => (
-        <group key={`chair-frame-${x}`} position={[x, 0, 0]}>
-          <mesh position={[0, 0.26, 0.2]} rotation={[0.13, 0, 0]} castShadow>
-            <cylinderGeometry args={[0.018, 0.018, 0.72, 12]} />
-            <meshStandardMaterial {...metalProps} />
-          </mesh>
-          <mesh position={[0, 0.26, -0.33]} rotation={[-0.2, 0, 0]} castShadow>
-            <cylinderGeometry args={[0.018, 0.018, 0.8, 12]} />
-            <meshStandardMaterial {...metalProps} />
-          </mesh>
-          <mesh position={[0, 0.04, -0.04]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-            <cylinderGeometry args={[0.016, 0.016, 0.86, 12]} />
-            <meshStandardMaterial {...metalProps} />
-          </mesh>
-        </group>
-      ))}
-
-      {/* seat and back cushions */}
-      <RoundedBox args={[0.78, 0.16, 0.72]} radius={0.06} smoothness={4} position={[0, 0.48, 0.03]} castShadow receiveShadow>
-        <meshStandardMaterial {...leatherProps} />
-      </RoundedBox>
-      <RoundedBox args={[0.76, 0.9, 0.14]} radius={0.06} smoothness={4} position={[0, 1.02, -0.34]} rotation={[-0.12, 0, 0]} castShadow>
-        <meshStandardMaterial color="#252d2f" roughness={0.66} metalness={0.02} />
-      </RoundedBox>
-
-      {/* stitched cushion seams */}
-      {[-0.18, 0.18].map((x) => (
-        <mesh key={`seat-seam-${x}`} position={[x, 0.566, 0.03]} rotation={[-Math.PI / 2, 0, 0]}>
-          <boxGeometry args={[0.012, 0.62, 0.006]} />
-          <meshStandardMaterial color="#131719" roughness={0.9} />
-        </mesh>
-      ))}
-      {[0.8, 1.02, 1.24].map((y) => (
-        <mesh key={`back-seam-${y}`} position={[0, y, -0.255]} rotation={[-0.12, 0, 0]}>
-          <boxGeometry args={[0.58, 0.012, 0.01]} />
-          <meshStandardMaterial color="#151a1c" roughness={0.9} />
-        </mesh>
-      ))}
-
-      {/* slim arms, not bulky sofa blocks */}
-      {[-0.47, 0.47].map((x) => (
-        <group key={`guest-arm-${x}`} position={[x, 0, 0]}>
-          <mesh position={[0, 0.66, 0.0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-            <cylinderGeometry args={[0.025, 0.025, 0.72, 14]} />
-            <meshStandardMaterial {...metalProps} />
-          </mesh>
-          <RoundedBox args={[0.07, 0.08, 0.62]} radius={0.03} smoothness={3} position={[0, 0.7, 0.02]} castShadow>
-            <meshStandardMaterial color="#22292b" roughness={0.72} />
-          </RoundedBox>
-        </group>
-      ))}
-
-      {/* small plastic glides */}
-      {([[-0.34, -0.47], [0.34, -0.47], [-0.34, 0.36], [0.34, 0.36]] as const).map(([x, z]) => (
-        <mesh key={`chair-glide-${x}-${z}`} position={[x, 0.02, z]} castShadow>
-          <cylinderGeometry args={[0.045, 0.045, 0.025, 12]} />
-          <meshStandardMaterial color="#161a1b" roughness={0.85} />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
 function TubeBetween({
   start,
   end,
@@ -385,10 +315,14 @@ function TubeBetween({
   );
 }
 
-function OwnerDogLeash() {
-  const hand: [number, number, number] = [0.34, 0.84, PATIENT_CHAIR_POS[2] - 0.15];
-  const slack: [number, number, number] = [-0.18, 0.62, PATIENT_CHAIR_POS[2] + 0.02];
-  const collar: [number, number, number] = [-0.72, 0.58, PATIENT_CHAIR_POS[2] - 0.26];
+function OwnerDogLeash({ petPosition }: { petPosition: [number, number, number] }) {
+  const hand: [number, number, number] = [0.28, 0.84, 0.04];
+  const slack: [number, number, number] = [
+    (hand[0] + petPosition[0]) * 0.5,
+    0.6,
+    (hand[2] + petPosition[2]) * 0.5 + 0.12,
+  ];
+  const collar: [number, number, number] = [petPosition[0] + 0.02, 0.56, petPosition[2] + 0.44];
   return (
     <group>
       <TubeBetween start={hand} end={slack} radius={0.009} color="#2b2420" roughness={0.82} />
@@ -400,10 +334,6 @@ function OwnerDogLeash() {
     </group>
   );
 }
-
-/** A seated human figure — torso upright, legs forward at 90°, arms on
- *  the thighs. Used for BOTH the patient in the patient chair and the
- *  doctor in the desk chair (different palette). */
 
 function Lighting() {
   return (
@@ -435,7 +365,7 @@ function Lighting() {
       <directionalLight position={[6, 6, 6]} intensity={0.42} color="#d8e6ee" />
       {/* Rim behind the doctor to separate the back wall from the figure */}
       <directionalLight position={[0, 3, -8]} intensity={0.28} color="#dce5e1" />
-      {/* Patient-chair fill — warm, practical */}
+      {/* Consultation-zone fill — warm, practical */}
       <pointLight position={[0, 2.4, ROOM_BACK_Z + 4.2]} intensity={0.32} distance={6} color="#f3f7f5" />
       {/* Desk fill — subtle emphasis on the doctor side */}
       <pointLight position={[0, 2.4, ROOM_BACK_Z + 1.6]} intensity={0.3} distance={5} color="#f3f7f5" />
@@ -625,7 +555,7 @@ function DoctorDesk({
   patient: MonitorPatient | null;
 }) {
   // Re-bake whenever the patient identity changes so the monitor reflects
-  // the person actually sitting in the chair. Disposed on each rebuild.
+  // the active consultation record. Disposed on each rebuild.
   const monitorTex = useMemo(() => makeMonitorTexture(patient), [
     patient?.id,
     patient?.name,
@@ -657,7 +587,7 @@ function DoctorDesk({
       {/* Monitor — sits on the doctor-half of the desk and is angled
           toward the doctor's seat (desk-local ~(0, _, −0.95)). Wrapping
           the head (frame + screen + LED) in a group rotated ~135° around
-          Y makes its +z local face the chair. The base/neck stay axis-
+          Y makes its +z local face the consult point. The base/neck stay axis-
           aligned like a real swivel stand. Sized down from the original
           so it no longer occludes the bookshelf behind it. */}
       {/* base + stand neck */}
@@ -2336,17 +2266,28 @@ function CaseProp({ patient }: { patient: MonitorPatient }) {
   return null;
 }
 
-function ConsultationPet({ patient }: { patient: MonitorPatient }) {
+function getPetCompanionPosition(patient: MonitorPatient): [number, number, number] {
+  return patient.species === 'cat'
+    ? [0.62, 0.02, -0.06]
+    : [0.72, 0.02, -0.2];
+}
+
+function ConsultationPet({
+  patient,
+  position = getPetCompanionPosition(patient),
+  rotationY = Math.PI - 0.12,
+}: {
+  patient: MonitorPatient;
+  position?: [number, number, number];
+  rotationY?: number;
+}) {
   const color = petPalette(patient.id + patient.name, patient.species);
   const isCat = patient.species === 'cat';
   const weightScale = isCat
     ? THREE.MathUtils.clamp(patient.weightKg / 5.5, 0.82, 1.05)
     : THREE.MathUtils.clamp(patient.weightKg / 22, 0.72, 1.18);
-  const pos: [number, number, number] = isCat
-    ? [PATIENT_CHAIR_POS[0] - 0.75, 0.02, PATIENT_CHAIR_POS[2] + 0.28]
-    : [PATIENT_CHAIR_POS[0] - 0.72, 0.02, PATIENT_CHAIR_POS[2] + 0.2];
   return (
-    <group position={pos} rotation={[0, -0.12, 0]} scale={weightScale}>
+    <group position={position} rotation={[0, rotationY, 0]} scale={weightScale}>
       {isCat ? <CatPatientModel color={color} severity={patient.severity} /> : <DogPatientModel color={color} severity={patient.severity} />}
       <CaseProp patient={patient} />
       <Text position={[0, 0.02, 0.82]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.07} color="#6b4f3f" anchorX="center" anchorY="middle" fontWeight={900}>
@@ -2499,7 +2440,7 @@ function Rug({ position, size = [3.2, 4.0] as [number, number] }: { position: [n
   );
 }
 
-/** Small side table next to the patient chair. */
+/** Barkibu leaflet that sits on the small consultation-side table. */
 function BarkibuLeaflet({ position, rotationY = 0 }: { position: [number, number, number]; rotationY?: number }) {
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
@@ -3118,7 +3059,7 @@ function DoorFrame() {
 }
 
 /** The seated doctor doesn't walk around, so the "interactable" idea boils
- *  down to: E/T acts on the patient when one is seated, otherwise E opens
+ *  down to: E/T acts on the pet when an owner is present, otherwise E opens
  *  the archive at the desk. We register EXACTLY ONE interactable at a time
  *  so the player's "closest active" logic never picks the wrong one. */
 function SeatedDoctorInteractable({ patientName }: { patientName: string | null }) {
@@ -3128,7 +3069,7 @@ function SeatedDoctorInteractable({ patientName }: { patientName: string | null 
         id: 'polyclinic-active-patient',
         position: PATIENT_CHAIR_POS,
         radius: 100,
-        prompt: `E — Examine   ·   T — Talk to ${patientName}`,
+        prompt: `E — Examine pet   ·   T — Talk to ${patientName}`,
         kind: 'bed',
         bedIndex: POLYCLINIC_BED_INDEX,
       });
@@ -3171,52 +3112,51 @@ function deriveExpression(
   return 'neutral';
 }
 
-/** Walks the patient in from the corridor to the patient chair, then hides
- *  itself so the seated figure takes over. On patient clear, plays walk-out. */
+/** Walks the pet owner and animal in from the corridor to the consultation
+ *  point. On patient clear, the same group walks out together. */
 function WalkingPatient({
   hasPatient,
   patientKey,
+  patient,
   age,
   gender,
   caseId,
   severity,
   complaint,
-  onSeatedChange,
 }: {
   hasPatient: boolean;
   patientKey: string | null;
+  patient?: MonitorPatient | null;
   age?: number;
   gender?: 'M' | 'F';
   /** Stable string used as seed for the Avatar's GLB pool pick, so the
-   *  same patient always loads the same underlying rig. */
+   *  same owner always loads the same underlying rig. */
   caseId?: string;
   severity?: 'critical' | 'urgent' | 'stable';
   complaint?: string;
-  /** Fires true when the walk-in animation finishes and the patient has
-   *  reached the chair; false again when a new walk-in starts or the
-   *  patient walks out. The parent uses this to hide the seated figure
-   *  until the walking figure is no longer on screen. */
-  onSeatedChange?: (seated: boolean) => void;
 }) {
   const groupRef = useRef<Group | null>(null);
-  const [phase, setPhase] = useState<'walk-in' | 'seated' | 'walk-out' | 'gone'>('gone');
+  const [phase, setPhase] = useState<'walk-in' | 'arrived' | 'walk-out' | 'gone'>('gone');
   const progressRef = useRef(0);
+  const companionRef = useRef<MonitorPatient | null>(null);
   const WALK_DURATION_S = 4.0;
+
+  useEffect(() => {
+    if (patient) companionRef.current = patient;
+  }, [patient]);
 
   const prevKeyRef = useRef<string | null>(null);
   useEffect(() => {
     if (hasPatient && patientKey && patientKey !== prevKeyRef.current) {
       progressRef.current = 0;
       setPhase('walk-in');
-      onSeatedChange?.(false);
       prevKeyRef.current = patientKey;
     } else if (!hasPatient && prevKeyRef.current) {
       progressRef.current = 0;
       setPhase('walk-out');
-      onSeatedChange?.(false);
       prevKeyRef.current = null;
     }
-  }, [hasPatient, patientKey, onSeatedChange]);
+  }, [hasPatient, patientKey]);
 
   const walkCycleRef = useRef(0);
   useFrame((_, dt) => {
@@ -3228,72 +3168,63 @@ function WalkingPatient({
     if (phase === 'walk-in') {
       progressRef.current = Math.min(1, progressRef.current + dt / WALK_DURATION_S);
       const t = progressRef.current;
-      g.position.x = PATIENT_SPAWN[0] + (PATIENT_AT_SEAT[0] - PATIENT_SPAWN[0]) * t;
-      g.position.z = PATIENT_SPAWN[2] + (PATIENT_AT_SEAT[2] - PATIENT_SPAWN[2]) * t;
-      const dx = PATIENT_AT_SEAT[0] - PATIENT_SPAWN[0];
-      const dz = PATIENT_AT_SEAT[2] - PATIENT_SPAWN[2];
+      g.position.x = PATIENT_SPAWN[0] + (PATIENT_AT_CONSULT[0] - PATIENT_SPAWN[0]) * t;
+      g.position.z = PATIENT_SPAWN[2] + (PATIENT_AT_CONSULT[2] - PATIENT_SPAWN[2]) * t;
+      const dx = PATIENT_AT_CONSULT[0] - PATIENT_SPAWN[0];
+      const dz = PATIENT_AT_CONSULT[2] - PATIENT_SPAWN[2];
       g.rotation.y = Math.atan2(dx, dz);
       g.position.y = 0;
       if (t >= 1) {
-        setPhase('seated');
-        onSeatedChange?.(true);
-        // Snap exactly to chair position and face the doctor (−z).
-        g.position.set(PATIENT_AT_SEAT[0], 0, PATIENT_AT_SEAT[2]);
+        setPhase('arrived');
+        // Snap exactly to the consultation point and face the doctor (−z).
+        g.position.set(PATIENT_AT_CONSULT[0], 0, PATIENT_AT_CONSULT[2]);
         g.rotation.y = Math.PI;
       }
     } else if (phase === 'walk-out') {
       progressRef.current = Math.min(1, progressRef.current + dt / WALK_DURATION_S);
       const t = progressRef.current;
-      g.position.x = PATIENT_AT_SEAT[0] + (PATIENT_SPAWN[0] - PATIENT_AT_SEAT[0]) * t;
-      g.position.z = PATIENT_AT_SEAT[2] + (PATIENT_SPAWN[2] - PATIENT_AT_SEAT[2]) * t;
-      const dx = PATIENT_SPAWN[0] - PATIENT_AT_SEAT[0];
-      const dz = PATIENT_SPAWN[2] - PATIENT_AT_SEAT[2];
+      g.position.x = PATIENT_AT_CONSULT[0] + (PATIENT_SPAWN[0] - PATIENT_AT_CONSULT[0]) * t;
+      g.position.z = PATIENT_AT_CONSULT[2] + (PATIENT_SPAWN[2] - PATIENT_AT_CONSULT[2]) * t;
+      const dx = PATIENT_SPAWN[0] - PATIENT_AT_CONSULT[0];
+      const dz = PATIENT_SPAWN[2] - PATIENT_AT_CONSULT[2];
       g.rotation.y = Math.atan2(dx, dz);
       g.position.y = 0;
-      if (t >= 1) setPhase('gone');
+      if (t >= 1) {
+        companionRef.current = null;
+        setPhase('gone');
+      }
     }
   });
 
   if (phase === 'gone') return null;
 
-  const patientAge = age ?? 35;
-  const patientGender = gender ?? 'M';
-  const charPose: 'walking' | 'sitting' =
-    phase === 'seated' ? 'sitting' : 'walking';
-  const expression = deriveExpression(severity, complaint);
-  // Pediatric human patients used to arrive with an accompanying adult. In
-  // the veterinary MVP, the visible human is already the pet parent, so animal
-  // ages should not create a child + parent pair.
-  const isChild = patientAge < 14;
-  const parentSeed = isChild && caseId ? `${caseId}-parent` : null;
-  const parentGender: 'M' | 'F' = caseId ? parentGenderForId(caseId) : 'F';
-  const parentPose: 'walking' | 'standing' =
-    charPose === 'sitting' ? 'standing' : 'walking';
+  const displayPatient = patient ?? companionRef.current;
+  const ownerCaseId = caseId ?? displayPatient?.id;
+  const patientAge = age ?? (displayPatient ? 38 : 35);
+  const patientGender = gender ?? (displayPatient ? parentGenderForId(displayPatient.id) : 'M');
+  const ownerPose: 'walking' | 'standing' =
+    phase === 'arrived' ? 'standing' : 'walking';
+  const expression = deriveExpression(
+    severity ?? displayPatient?.severity,
+    complaint ?? displayPatient?.chiefComplaint,
+  );
+  const petPosition = displayPatient ? getPetCompanionPosition(displayPatient) : null;
   return (
     <group ref={groupRef as React.MutableRefObject<Group>} position={PATIENT_SPAWN}>
       <StylizedCharacter
-        pose={charPose}
+        pose={ownerPose}
         walkCycle={walkCycleRef.current}
         age={patientAge}
         gender={patientGender}
-        seed={caseId}
+        seed={ownerCaseId ? `${ownerCaseId}-owner` : undefined}
         expression={expression}
-        lookAtCamera={charPose === 'sitting'}
+        lookAtCamera={false}
       />
-      {parentSeed && (
-        // Parent's local +x maps to world −x after the group's seated
-        // rotationY=π, which puts the parent on the camera's RIGHT — a
-        // visible spot next to the chair from the doctor's POV.
-        <StylizedCharacter
-          pose={parentPose}
-          walkCycle={walkCycleRef.current}
-          age={38}
-          gender={parentGender}
-          seed={parentSeed}
-          position={[0.7, 0, 0.05]}
-          expression="neutral"
-          lookAtCamera={parentPose === 'standing'}
-        />
+      {displayPatient && petPosition && (
+        <>
+          <ConsultationPet patient={displayPatient} position={petPosition} />
+          {displayPatient.species === 'dog' && <OwnerDogLeash petPosition={petPosition} />}
+        </>
       )}
     </group>
   );
@@ -3337,8 +3268,24 @@ export function Polyclinic({
     return `${patient.case.id}-${patient.arrivedAt}`;
   }, [patient]);
 
-  // The GLB avatar renders throughout walk-in → seated → walk-out via
-  // WalkingPatient below; no separate seated-figure gate is needed.
+  const monitorPatient = useMemo<MonitorPatient | null>(() => {
+    if (!patient) return null;
+    return {
+      id: patient.case.id,
+      name: patient.case.name,
+      age: patient.case.age,
+      gender: patient.case.gender,
+      severity: patient.case.severity,
+      species: patient.case.species,
+      breed: patient.case.breed,
+      weightKg: patient.case.weightKg,
+      ownerName: patient.case.ownerName,
+      chiefComplaint: patient.case.chiefComplaint,
+    };
+  }, [patient]);
+
+  // The owner + animal group renders throughout walk-in → consult → walk-out
+  // via WalkingPatient below; there is no static in-room pet duplicate.
 
   return (
     <>
@@ -3473,52 +3420,15 @@ export function Polyclinic({
           redundant and made the chair look occupied. */}
       <DoctorDesk
         position={DESK_POS}
-        patient={
-          patient
-            ? {
-                id: patient.case.id,
-                name: patient.case.name,
-                age: patient.case.age,
-                gender: patient.case.gender,
-                severity: patient.case.severity,
-                species: patient.case.species,
-                breed: patient.case.breed,
-                weightKg: patient.case.weightKg,
-                ownerName: patient.case.ownerName,
-                chiefComplaint: patient.case.chiefComplaint,
-              }
-            : null
-        }
+        patient={monitorPatient}
       />
       <DoctorChair position={DOCTOR_CHAIR_POS} rotationY={0} />
 
-      {/* Patient chair — faces the doctor (−z direction). The patient
-          figure (GLB Avatar) is rendered by WalkingPatient below; it
-          stays on screen from walk-in through seated through walk-out
-          so the character's identity is consistent. */}
-      <PatientChair position={PATIENT_CHAIR_POS} rotationY={Math.PI} />
-      {patient && (
-        <ConsultationPet
-          patient={{
-            id: patient.case.id,
-            name: patient.case.name,
-            age: patient.case.age,
-            gender: patient.case.gender,
-            severity: patient.case.severity,
-            species: patient.case.species,
-            breed: patient.case.breed,
-            weightKg: patient.case.weightKg,
-            ownerName: patient.case.ownerName,
-            chiefComplaint: patient.case.chiefComplaint,
-          }}
-        />
-      )}
-      {patient?.case.species === 'dog' && <OwnerDogLeash />}
-      {/* Single context-aware interactable: examines the patient when one
-           is seated, otherwise opens the archive. */}
+      {/* Single context-aware interactable: examines the pet when one
+           is present, otherwise opens the archive. */}
       <SeatedDoctorInteractable patientName={patient?.case.ownerName ?? null} />
 
-      {/* Side table beside the patient chair — tissues, water, magazine */}
+      {/* Side table beside the consultation point — tissues, water, magazine */}
       <SideTable position={[PATIENT_CHAIR_POS[0] + 1.0, 0, PATIENT_CHAIR_POS[2]]} />
 
       {/* Medicine cabinet on the right wall */}
@@ -3536,7 +3446,7 @@ export function Polyclinic({
       {/* Coat rack in the front-right corner OF THE EXAM ROOM with three
           hung coats — spare white doctor's coat, a wool overcoat, and a
           blue jacket. Sits just inside the room so it's visible from the
-          patient chair as well as from the corridor through the open door. */}
+          consult point as well as from the corridor through the open door. */}
       <CoatRack position={[WORLD_RIGHT_X - 0.75, 0, ROOM_FRONT_Z - 0.6]} />
 
       {/* Veterinary weighing station in the front-left corner — replaces the
@@ -3550,12 +3460,12 @@ export function Polyclinic({
           parallel to the wall (along world z). Head toward the back wall. */}
       <ExamBed position={[WORLD_RIGHT_X - 0.55, 0, ROOM_BACK_Z + 5.0]} rotationY={0} />
 
-      {/* Ceiling exam light over the patient chair */}
+      {/* Ceiling exam light over the standing consultation point */}
       <ExamLight position={[PATIENT_CHAIR_POS[0] + 0.6, 2.95, PATIENT_CHAIR_POS[2] - 0.4]} />
       {/* Second pendant over the examination couch (now wall-side) */}
       <ExamLight position={[WORLD_RIGHT_X - 0.55, 2.95, ROOM_BACK_Z + 5.0]} />
 
-      {/* Front-wall decor (the wall BEHIND the patient's back) — was
+      {/* Front-wall decor (behind the owner and animal as they face the desk) — was
           previously a blank painted surface, now dressed like a real
           consulting room with a first-aid cabinet, bulletin board and a
           framed photo to flank the door. */}
@@ -3576,10 +3486,11 @@ export function Polyclinic({
       {/* Water cooler in the front-left corner */}
       <WaterCooler position={[WORLD_LEFT_X + 0.35, 0, ROOM_FRONT_Z + 0.45]} />
 
-      {/* Patient walk-in / walk-out animation (hidden when seated) */}
+      {/* Owner + animal walk-in / walk-out animation */}
       <WalkingPatient
         hasPatient={!!patient}
         patientKey={patientKey}
+        patient={monitorPatient}
         age={patient ? 38 : undefined}
         gender={patient ? parentGenderForId(patient.case.id) : undefined}
         caseId={patient?.case.id}
@@ -3587,10 +3498,8 @@ export function Polyclinic({
         complaint={patient?.case.chiefComplaint}
       />
 
-      {/* Floating voice panel — anchored well ABOVE the seated patient's
-          head so the bubble doesn't cover their face. The speech-tail on
-          the bubble still points down toward the patient, giving the
-          classic comic-book look without clipping the head. */}
+      {/* Floating voice panel — anchored above the owner/pet consult point so
+          the bubble doesn't cover either figure. */}
       {voiceActive && patient && (
         <FloatingVoicePanel
           bedPosition={PATIENT_CHAIR_POS}

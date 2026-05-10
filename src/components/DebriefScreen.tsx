@@ -492,7 +492,7 @@ export function DebriefScreen() {
 
   // Prefer the snapshot captured by `finishPolyclinicCase` — by the time we
   // mount, the live patient slot has been cleared so the 3D scene can play
-  // the walk-out animation. Fall back to a still-seated patient (rare:
+  // the walk-out animation. Fall back to a still-active patient (rare:
   // the screen was opened directly without ending the encounter).
   const patient = reviewed?.patientSnapshot ?? state.polyclinic.patient ?? state.lastEncounter;
   const c = useMemo<PatientCase | null>(() => {

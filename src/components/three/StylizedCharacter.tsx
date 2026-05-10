@@ -131,7 +131,7 @@ function pickAccessories(
  *
  * Anatomy uses real-ish proportions:
  *   head ≈ 0.22,  torso 0.56,  legs 0.82,  total ≈ 1.72m standing.
- * Sitting hip at y=0.46 so it lines up with the existing PatientChair cushion.
+ * Sitting hip at y=0.46 so it lines up with standard guest-chair cushions.
  */
 export function StylizedCharacter({
   pose,
