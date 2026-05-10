@@ -384,14 +384,14 @@ function NodeCard({ node, onSelect }: NodeCardProps) {
           fontSize={10}
           fontWeight={900}
           fill="var(--ink)"
-          fontFamily="Nunito, sans-serif"
+          fontFamily="Inter, sans-serif"
           letterSpacing="0.08em"
         >
           {node.badge}
         </text>
       </g>
       {(() => {
-        // Roughly 12px per char at fontSize 20 weight 900 Nunito.
+        // Roughly 12px per char at fontSize 20 weight 900 Inter.
         const maxTextW = node.w - 36;
         const estW = node.title.length * 12;
         const overflow = estW > maxTextW;
@@ -402,7 +402,7 @@ function NodeCard({ node, onSelect }: NodeCardProps) {
             fontSize={overflow ? 17 : 20}
             fontWeight={900}
             fill="var(--ink)"
-            fontFamily="Nunito, sans-serif"
+            fontFamily="Inter, sans-serif"
             {...(overflow
               ? { textLength: maxTextW, lengthAdjust: 'spacingAndGlyphs' }
               : {})}
@@ -417,7 +417,7 @@ function NodeCard({ node, onSelect }: NodeCardProps) {
         fontSize={13}
         fontWeight={600}
         fill="var(--ink-2)"
-        fontFamily="Nunito, sans-serif"
+        fontFamily="Inter, sans-serif"
       >
         {node.subtitle}
       </text>
@@ -739,7 +739,7 @@ export function AgentTopologyScreen() {
               textAnchor="middle"
               fontSize={14}
               fontWeight={900}
-              fontFamily="Nunito, sans-serif"
+              fontFamily="Inter, sans-serif"
               fill="var(--ink)"
               letterSpacing="0.18em"
             >
@@ -751,7 +751,7 @@ export function AgentTopologyScreen() {
               textAnchor="middle"
               fontSize={36}
               fontWeight={900}
-              fontFamily="Nunito, sans-serif"
+              fontFamily="Inter, sans-serif"
               fill="var(--ink)"
             >
               Grader
@@ -762,7 +762,7 @@ export function AgentTopologyScreen() {
               textAnchor="middle"
               fontSize={13}
               fontWeight={700}
-              fontFamily="Nunito, sans-serif"
+              fontFamily="Inter, sans-serif"
               fill="var(--ink-2)"
             >
               vetkit-attending
@@ -787,7 +787,7 @@ export function AgentTopologyScreen() {
               textAnchor="middle"
               fontSize={13}
               fontWeight={900}
-              fontFamily="Nunito, sans-serif"
+              fontFamily="Inter, sans-serif"
               fill="var(--ink)"
               letterSpacing="0.14em"
             >
@@ -810,7 +810,7 @@ export function AgentTopologyScreen() {
               textAnchor="middle"
               fontSize={13}
               fontWeight={900}
-              fontFamily="Nunito, sans-serif"
+              fontFamily="Inter, sans-serif"
               fill="var(--ink)"
               letterSpacing="0.14em"
             >
@@ -834,7 +834,7 @@ export function AgentTopologyScreen() {
               textAnchor="middle"
               fontSize={14}
               fontWeight={800}
-              fontFamily="Nunito, sans-serif"
+              fontFamily="Inter, sans-serif"
               fill="var(--ink)"
             >
               {SUB_RULES.length} sub-rules enforced
@@ -846,7 +846,7 @@ export function AgentTopologyScreen() {
               textAnchor="middle"
               fontSize={14}
               fontWeight={800}
-              fontFamily="Nunito, sans-serif"
+              fontFamily="Inter, sans-serif"
               fill="var(--ink)"
             >
               {SESSIONS.length} sessions in flight

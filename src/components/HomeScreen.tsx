@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { PatientFace, TopBar } from './primitives';
-import { store, useTweaks } from '../game/store';
+import { ArrowRight, BookOpen, Dog, Play, Sparkles, Trash2 } from 'lucide-react';
+import { TopBar } from './primitives';
+import { store } from '../game/store';
 import {
   listEvalHistory,
   deleteEvalHistory,
@@ -46,8 +47,8 @@ function Stat({ big, sub, out }: StatProps) {
     <div
       style={{
         background: 'white',
-        border: '3px solid var(--line)',
-        borderRadius: 14,
+        border: '1px solid #D5D8DA',
+        borderRadius: 8,
         padding: 12,
         boxShadow: 'var(--plush-tiny)',
       }}
@@ -146,7 +147,6 @@ function computeStats(history: EvalHistoryEntry[]): TrainingStats {
 }
 
 export function HomeScreen() {
-  const tweaks = useTweaks();
   const [history, setHistory] = useState<EvalHistoryEntry[]>([]);
 
   // Load on mount + whenever the screen is shown so it stays current.
@@ -171,7 +171,7 @@ export function HomeScreen() {
           padding: '28px 36px',
           minHeight: 'calc(100vh - 67px)',
           display: 'grid',
-          gridTemplateColumns: '1.4fr 1fr',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
           gap: 24,
         }}
       >
@@ -195,14 +195,13 @@ export function HomeScreen() {
             <div
               className="plush-lg"
               style={{
-                background: 'var(--cream-2)',
+                background: 'white',
                 padding: 18,
                 position: 'relative',
-                transform: 'rotate(-0.6deg)',
               }}
             >
               <div style={{ position: 'absolute', top: -12, left: 22 }} className="chip butter">
-                ★ first case
+                <Sparkles size={13} /> first case
               </div>
               <div
                 style={{
@@ -210,13 +209,25 @@ export function HomeScreen() {
                   gap: 18,
                   alignItems: 'center',
                   background: 'white',
-                  borderRadius: 18,
-                  border: '3px dashed rgba(43,30,22,0.25)',
+                  borderRadius: 8,
+                  border: '1px solid #D5D8DA',
                   padding: 16,
                 }}
               >
-                <div className="floaty" style={{ opacity: 0.6 }}>
-                  <PatientFace style={tweaks.avatarStyle} skin="#E8B68F" hair="#3B2A1F" size={120} mood="neutral" />
+                <div
+                  style={{
+                    width: 104,
+                    height: 104,
+                    borderRadius: 8,
+                    border: '1px solid #D5D8DA',
+                    background: 'rgba(63,143,114,0.10)',
+                    color: 'var(--mint-deep)',
+                    display: 'grid',
+                    placeItems: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Dog size={54} strokeWidth={1.6} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 900, fontSize: 22 }}>No case picked yet</div>
@@ -227,17 +238,17 @@ export function HomeScreen() {
                 <button
                   type="button"
                   className="btn-plush primary"
-                  style={{ fontSize: 15, padding: '14px 18px' }}
+                  style={{ fontSize: 15, padding: '14px 18px', display: 'inline-flex', alignItems: 'center', gap: 8 }}
                   onClick={() => store.setScreen('mode')}
                 >
-                  Start →
+                  Start <ArrowRight size={16} />
                 </button>
               </div>
             </div>
           ) : (
-            <div className="plush-lg" style={{ background: 'var(--peach)', padding: 18, position: 'relative', transform: 'rotate(-0.6deg)' }}>
+            <div className="plush-lg" style={{ background: 'white', padding: 18, position: 'relative' }}>
               <div style={{ position: 'absolute', top: -12, left: 22 }} className="chip butter">
-                ★ pick up where you left off
+                <Sparkles size={13} /> pick up where you left off
               </div>
               <div
                 style={{
@@ -245,19 +256,25 @@ export function HomeScreen() {
                   gap: 18,
                   alignItems: 'center',
                   background: 'white',
-                  borderRadius: 18,
-                  border: '3px solid var(--line)',
+                  borderRadius: 8,
+                  border: '1px solid #D5D8DA',
                   padding: 16,
                 }}
               >
-                <div className="floaty">
-                  <PatientFace
-                    style={tweaks.avatarStyle}
-                    skin={history[0].caseGender === 'F' ? '#F0C4A8' : '#E8B68F'}
-                    hair="#3B2A1F"
-                    size={120}
-                    mood="neutral"
-                  />
+                <div
+                  style={{
+                    width: 104,
+                    height: 104,
+                    borderRadius: 8,
+                    border: '1px solid #D5D8DA',
+                    background: 'rgba(85,123,144,0.12)',
+                    color: 'var(--sky-deep)',
+                    display: 'grid',
+                    placeItems: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <BookOpen size={52} strokeWidth={1.6} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 900, fontSize: 22 }}>
@@ -279,10 +296,10 @@ export function HomeScreen() {
                 <button
                   type="button"
                   className="btn-plush primary"
-                  style={{ fontSize: 15, padding: '14px 18px' }}
+                  style={{ fontSize: 15, padding: '14px 18px', display: 'inline-flex', alignItems: 'center', gap: 8 }}
                   onClick={() => store.viewEvalHistory(history[0].id)}
                 >
-                  Review →
+                  Review <ArrowRight size={16} />
                 </button>
               </div>
             </div>
@@ -291,10 +308,10 @@ export function HomeScreen() {
           <button
             type="button"
             className="btn-plush mint"
-            style={{ fontSize: 22, padding: '18px 0', alignSelf: 'stretch' }}
+            style={{ fontSize: 17, padding: '16px 0', alignSelf: 'stretch', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}
             onClick={() => store.setScreen('mode')}
           >
-            ▶ Start a session
+            <Play size={18} /> Start a session
           </button>
 
           <button
@@ -387,8 +404,8 @@ export function HomeScreen() {
                   fontWeight: 600,
                   color: 'var(--ink-2)',
                   background: 'var(--cream)',
-                  border: '2.5px dashed rgba(43,30,22,0.2)',
-                  borderRadius: 12,
+                  border: '1px dashed #CDD2D5',
+                  borderRadius: 8,
                   padding: '14px 16px',
                   textAlign: 'center',
                 }}
@@ -409,9 +426,9 @@ export function HomeScreen() {
                         alignItems: 'center',
                         padding: '8px 12px',
                         background: 'var(--cream)',
-                        border: '2.5px solid var(--line)',
-                        borderRadius: 12,
-                        boxShadow: '0 2px 0 var(--line)',
+                        border: '1px solid #D5D8DA',
+                        borderRadius: 8,
+                        boxShadow: 'none',
                       }}
                     >
                       <div
@@ -422,8 +439,8 @@ export function HomeScreen() {
                           height: 36,
                           borderRadius: '50%',
                           background: color,
-                          border: '2.5px solid var(--line)',
-                          boxShadow: '0 2px 0 var(--line)',
+                          border: '1px solid #D5D8DA',
+                          boxShadow: 'none',
                           cursor: 'pointer',
                         }}
                       />
@@ -463,7 +480,7 @@ export function HomeScreen() {
                           fontFamily: 'inherit',
                         }}
                       >
-                        ✕
+                        <Trash2 size={15} strokeWidth={1.8} />
                       </button>
                     </div>
                   );
@@ -500,8 +517,8 @@ export function HomeScreen() {
               style={{
                 marginTop: 12,
                 background: 'white',
-                border: '3px solid var(--line)',
-                borderRadius: 14,
+                border: '1px solid #D5D8DA',
+                borderRadius: 8,
                 padding: 12,
                 boxShadow: 'var(--plush-tiny)',
               }}
@@ -526,7 +543,7 @@ export function HomeScreen() {
                   height: 12,
                   background: 'var(--cream)',
                   borderRadius: 8,
-                  border: '2px solid var(--line)',
+                  border: '1px solid #D5D8DA',
                   overflow: 'hidden',
                   position: 'relative',
                 }}
@@ -595,7 +612,7 @@ export function HomeScreen() {
                       height: 14,
                       background: 'var(--cream)',
                       borderRadius: 8,
-                      border: '2.5px solid var(--line)',
+                      border: '1px solid #D5D8DA',
                       overflow: 'hidden',
                       position: 'relative',
                     }}
@@ -606,7 +623,7 @@ export function HomeScreen() {
                         inset: 0,
                         width: `${d.pct}%`,
                         background: d.color,
-                        borderRight: '2.5px solid var(--line)',
+                        borderRight: '1px solid #D5D8DA',
                       }}
                     />
                   </div>
@@ -619,8 +636,8 @@ export function HomeScreen() {
             className="plush"
             style={{ padding: 14, background: 'var(--mint)', display: 'flex', alignItems: 'center', gap: 12 }}
           >
-            <div style={{ fontSize: 36 }} className="floaty">
-              📚
+            <div style={{ color: 'var(--mint-deep)', display: 'grid', placeItems: 'center' }}>
+              <BookOpen size={34} strokeWidth={1.7} />
             </div>
             <div>
               <div style={{ fontWeight: 900, fontSize: 14 }}>

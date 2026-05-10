@@ -36,6 +36,15 @@ Originally built in three days for a clinical-simulation hackathon by a medical-
 Current MVP flow:
 - **Small-animal clinic** — one dog or cat at a time, owner conversation, instant outpatient diagnostics, prescriptions, debrief, and Barkibu-style cost estimate.
 
+## Visual language
+
+Vetkit now uses the **clinical premium** theme by default:
+
+- restrained warm-neutral clinical palette with Barkibu orange used as an accent, not decoration;
+- Inter typography, 1px borders, radii of 8px or less for app surfaces, and soft elevation;
+- a veterinary clinic hero image plus a cleaned-up 3D consultation room with neutral materials, clinical lighting, dog/cat patient cues, and discreet Barkibu context;
+- generated local audio assets for lobby ambience, UI clicks, and case completion, with icon-only mute controls and no emoji controls.
+
 ---
 
 ## Prerequisites

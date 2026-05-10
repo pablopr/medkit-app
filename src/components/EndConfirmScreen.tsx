@@ -1,22 +1,23 @@
-import { DoodleScatter, PatientFace, TopBar } from './primitives';
+import { ArrowLeft, ArrowRight, Check, ClipboardCheck, MessageSquareText, ShieldCheck } from 'lucide-react';
+import { TopBar } from './primitives';
 import { getCase } from '../data/cases';
-import { store, useStore, useTweaks } from '../game/store';
+import { store, useStore } from '../game/store';
 import type { EndConfirmChecks } from '../game/types';
 
 interface Item {
   id: keyof EndConfirmChecks;
   label: string;
   sub: string;
+  icon: typeof ClipboardCheck;
 }
 
 const ITEMS: Item[] = [
-  { id: 'sum', label: 'Have you summarised back to the pet parent?', sub: 'A short read-back of the story.' },
-  { id: 'safe', label: 'Have you safety-netted?', sub: 'What to look for, when to come back.' },
-  { id: 'ice', label: 'Have you addressed their ideas, concerns, expectations?', sub: 'Did the owner feel heard?' },
+  { id: 'sum', label: 'Summarised back to the pet parent', sub: 'A concise read-back of the story and working plan.', icon: ClipboardCheck },
+  { id: 'safe', label: 'Safety-netted clearly', sub: 'What to watch for, when to return, and what is urgent.', icon: ShieldCheck },
+  { id: 'ice', label: 'Addressed ideas and concerns', sub: 'The owner had space to explain expectations and worries.', icon: MessageSquareText },
 ];
 
 export function EndConfirmScreen() {
-  const tweaks = useTweaks();
   const checked = useStore((s) => s.endConfirm);
   const caseId = useStore((s) => s.selectedCaseId);
   const c = getCase(caseId);
@@ -25,146 +26,101 @@ export function EndConfirmScreen() {
     <div className="screen" style={{ background: 'var(--cream)', position: 'relative' }}>
       <TopBar here={5} steps={['Polyclinic', 'GP', 'Case', 'Brief', 'Encounter', 'Wrap']} />
 
-      <DoodleScatter
-        items={[
-          { kind: 'sparkle', x: 60, y: 90, size: 22, color: '#FFD86B' },
-          { kind: 'sparkle', x: '88%', y: 130, size: 20, color: '#5AB7F2' },
-        ]}
-      />
-
       <div
         style={{
-          position: 'absolute',
-          inset: 0,
-          top: 67,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 40,
+          minHeight: 'calc(100vh - 67px)',
+          display: 'grid',
+          placeItems: 'center',
+          padding: 36,
         }}
       >
-        <div
+        <section
           className="plush-lg"
           style={{
-            width: 720,
-            background: '#FFFCF3',
-            padding: 36,
-            position: 'relative',
-            transform: 'rotate(-0.8deg)',
+            width: 'min(760px, 100%)',
+            background: '#FFFFFF',
+            padding: 32,
           }}
         >
-          <div style={{ position: 'absolute', right: -38, top: -50 }}>
-            <div className="floaty">
-              <PatientFace style={tweaks.avatarStyle} skin={c.skin} hair={c.hair} size={110} mood="happy" />
-            </div>
-            <div style={{ position: 'absolute', left: -156, top: 16, width: 160 }}>
-              <div
-                style={{
-                  position: 'relative',
-                  background: 'white',
-                  border: '3.5px solid var(--line)',
-                  borderRadius: 'var(--r-md)',
-                  padding: '8px 12px',
-                  fontWeight: 700,
-                  fontSize: 12,
-                  boxShadow: 'var(--plush-sm)',
-                }}
-              >
-                "Is there anything else I should know?"
-                <svg style={{ position: 'absolute', right: -14, top: 14 }} width="20" height="22" viewBox="0 0 20 22">
-                  <path
-                    d="M 0 4 L 18 12 L 0 18 Z"
-                    fill="white"
-                    stroke="var(--line)"
-                    strokeWidth="3.5"
-                    strokeLinejoin="round"
-                  />
-                  <line x1="0" y1="4" x2="0" y2="18" stroke="white" strokeWidth="4" />
-                </svg>
-              </div>
-            </div>
+          <span className="chip sky" style={{ marginBottom: 16 }}>
+            <ClipboardCheck size={14} /> Close consultation
+          </span>
+
+          <h1 style={{ fontSize: 'clamp(30px, 4vw, 42px)', lineHeight: 1.08, marginBottom: 8 }}>
+            Final safety check.
+          </h1>
+          <div style={{ fontSize: 15, color: 'var(--ink-2)', fontWeight: 500, marginBottom: 22, maxWidth: 560 }}>
+            Before debriefing {c.name}, mark only what you actually covered with the owner.
           </div>
 
-          <div className="chip butter" style={{ marginBottom: 16 }}>
-            BEFORE YOU FINISH
-          </div>
-          <h1 style={{ fontSize: 32, lineHeight: 1.1, marginBottom: 8 }}>Take a breath.</h1>
-          <div
-            style={{
-              fontSize: 15,
-              color: 'var(--ink-2)',
-              fontWeight: 600,
-              marginBottom: 22,
-              maxWidth: 460,
-            }}
-          >
-            One last check — these affect your debrief. Tick what you actually did.
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 22 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
             {ITEMS.map((it) => {
               const on = checked[it.id];
+              const Icon = it.icon;
               return (
-                <div
+                <button
                   key={it.id}
+                  type="button"
                   className="tap"
                   onClick={() => store.toggleEndConfirm(it.id)}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: 14,
-                    padding: '12px 14px',
-                    background: on ? 'var(--mint)' : 'white',
-                    border: '3px solid var(--line)',
-                    borderRadius: 16,
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '13px 14px',
+                    background: on ? 'rgba(63,143,114,0.12)' : 'white',
+                    border: `1px solid ${on ? 'rgba(63,143,114,0.34)' : '#D5D8DA'}`,
+                    borderRadius: 8,
                     boxShadow: 'var(--plush-tiny)',
+                    fontFamily: 'inherit',
+                    color: 'var(--ink)',
+                    cursor: 'pointer',
                   }}
                 >
                   <div
                     style={{
-                      width: 32,
-                      height: 32,
+                      width: 38,
+                      height: 38,
                       borderRadius: 8,
-                      background: on ? 'white' : 'var(--cream)',
-                      border: '3px solid var(--line)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 900,
-                      fontSize: 18,
-                      color: 'var(--mint-deep)',
+                      background: on ? 'var(--mint-deep)' : 'var(--cream)',
+                      color: on ? 'white' : 'var(--ink-2)',
+                      display: 'grid',
+                      placeItems: 'center',
+                      flexShrink: 0,
                     }}
                   >
-                    {on ? '✓' : ''}
+                    {on ? <Check size={21} strokeWidth={2.2} /> : <Icon size={21} strokeWidth={1.8} />}
                   </div>
                   <div>
-                    <div style={{ fontWeight: 900, fontSize: 15 }}>{it.label}</div>
-                    <div style={{ fontWeight: 600, fontSize: 12, color: 'var(--ink-2)' }}>{it.sub}</div>
+                    <div style={{ fontWeight: 800, fontSize: 15 }}>{it.label}</div>
+                    <div style={{ fontWeight: 500, fontSize: 12, color: 'var(--ink-2)', marginTop: 2 }}>{it.sub}</div>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
 
-          <div style={{ display: 'flex', gap: 12 }}>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <button
               type="button"
               className="btn-plush ghost"
-              style={{ flex: 1 }}
+              style={{ flex: '1 1 220px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
               onClick={() => store.setScreen('encounter')}
             >
-              ← Back to the room
+              <ArrowLeft size={17} /> Back to room
             </button>
             <button
               type="button"
               className="btn-plush primary"
-              style={{ flex: 1.4 }}
+              style={{ flex: '1.4 1 260px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
               onClick={() => store.setScreen('debrief')}
             >
-              End consultation →
+              End consultation <ArrowRight size={17} />
             </button>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
+import { Volume2, VolumeX } from 'lucide-react';
 import { useScreen } from '../game/store';
 
 const MUTED_KEY = 'medkit:music-muted';
-const VOLUME = 0.18;
+const VOLUME = 0.10;
 
 function readMuted(): boolean {
   try {
@@ -32,7 +33,7 @@ export function BackgroundMusic() {
   const shouldPlay = !userMuted && !inSession;
 
   useEffect(() => {
-    const a = new Audio('/medkit.mp3');
+    const a = new Audio('/assets/audio/vetkit-lobby-ambient.wav');
     a.loop = true;
     a.volume = VOLUME;
     a.preload = 'auto';
@@ -109,12 +110,11 @@ export function BackgroundMusic() {
         zIndex: 1000,
         width: 36,
         height: 36,
-        borderRadius: '50%',
-        border: '3px solid var(--line)',
-        background: off ? 'var(--cream)' : 'var(--butter)',
-        boxShadow: '0 2px 0 var(--line)',
+        borderRadius: 8,
+        border: '1px solid #D5D8DA',
+        background: off ? 'white' : 'var(--mint)',
+        boxShadow: 'var(--plush-tiny)',
         cursor: 'pointer',
-        fontSize: 16,
         fontFamily: 'inherit',
         display: 'flex',
         alignItems: 'center',
@@ -123,7 +123,7 @@ export function BackgroundMusic() {
         opacity: inSession && !userMuted ? 0.8 : 1,
       }}
     >
-      <span aria-hidden style={{ lineHeight: 1 }}>{off ? '🔇' : '🎵'}</span>
+      {off ? <VolumeX size={17} aria-hidden /> : <Volume2 size={17} aria-hidden />}
     </button>
   );
 }

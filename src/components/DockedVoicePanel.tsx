@@ -100,16 +100,16 @@ export function DockedVoicePanel({ patientName, patientLabel }: Props) {
     <div
       style={{
         position: 'fixed',
-        top: 18,
+        bottom: 18,
         right: 18,
         zIndex: 60,
-        width: 260,
+        width: 'min(260px, calc(100vw - 36px))',
         background: 'white',
-        border: '3px solid var(--line)',
+        border: '1px solid #D5D8DA',
         borderRadius: 'var(--r-md)',
-        boxShadow: '0 6px 0 var(--line), 0 14px 28px rgba(43,30,22,0.18)',
+        boxShadow: 'var(--plush)',
         padding: '12px 14px',
-        fontFamily: 'Nunito, system-ui, sans-serif',
+        fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
         color: 'var(--ink)',
       }}
     >
@@ -137,12 +137,12 @@ export function DockedVoicePanel({ patientName, patientLabel }: Props) {
             letterSpacing: '0.12em',
             color: statusColor,
             textTransform: 'uppercase',
-            fontWeight: 900,
+            fontWeight: 800,
             whiteSpace: 'nowrap',
             padding: '3px 7px',
             borderRadius: 'var(--r-pill)',
             background: 'var(--cream)',
-            border: '2px solid var(--line)',
+            border: '1px solid #D5D8DA',
           }}
         >
           <span
@@ -170,8 +170,8 @@ export function DockedVoicePanel({ patientName, patientLabel }: Props) {
           maxHeight: 110,
           overflowY: 'auto',
           background: 'var(--cream-2)',
-          border: '2px solid var(--line)',
-          borderRadius: 10,
+          border: '1px solid #D5D8DA',
+          borderRadius: 8,
           padding: '8px 10px',
         }}
       >

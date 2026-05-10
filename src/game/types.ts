@@ -1,7 +1,7 @@
 import type { PaletteName } from '../styles/palettes';
 import type { ClinicId } from './clinic';
 
-// ── MedKit cozy-cartoon UI state ──────────────────────────
+// ── Vetkit clinical UI state ──────────────────────────
 
 export type Screen =
   | 'splash'

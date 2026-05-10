@@ -92,7 +92,7 @@ export function ExamineOverlay({ onClose, onDispatch }: Props) {
             gap: 12,
             padding: '14px 22px',
             background: 'var(--cream-2)',
-            borderBottom: '3px solid var(--line)',
+            borderBottom: '1px solid #D5D8DA',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
@@ -117,7 +117,7 @@ export function ExamineOverlay({ onClose, onDispatch }: Props) {
             style={{ fontSize: 13, padding: '8px 16px' }}
             title="Close (Esc)"
           >
-            ✕ Close
+            Close
           </button>
         </div>
 
@@ -125,19 +125,19 @@ export function ExamineOverlay({ onClose, onDispatch }: Props) {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(6, 1fr)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(96px, 1fr))',
             gap: 8,
             padding: '12px 22px',
             background: 'var(--cream)',
-            borderBottom: '3px solid var(--line)',
+            borderBottom: '1px solid #D5D8DA',
           }}
         >
-          <Vital icon="❤" label="HR" value={String(c.vitals.hr)} unit="bpm" tone="var(--rose)" />
-          <Vital icon="~" label="RR" value={String(c.vitals.rr)} unit="/min" tone="var(--sky)" />
-          <Vital icon="☼" label="Temp" value={c.vitals.temp.toFixed(1)} unit="°C" tone="var(--butter)" />
-          <Vital icon="○" label="CRT" value={String(c.vitals.crtSec)} unit="sec" tone="var(--mint)" />
-          <Vital icon="!" label="Pain" value={String(c.vitals.painScore)} unit="/10" tone="var(--peach)" />
-          <Vital icon="◆" label="MM" value={c.vitals.mmColor} unit="" tone="white" />
+          <Vital label="HR" value={String(c.vitals.hr)} unit="bpm" tone="var(--rose)" />
+          <Vital label="RR" value={String(c.vitals.rr)} unit="/min" tone="var(--sky)" />
+          <Vital label="Temp" value={c.vitals.temp.toFixed(1)} unit="C" tone="var(--butter)" />
+          <Vital label="CRT" value={String(c.vitals.crtSec)} unit="sec" tone="var(--mint)" />
+          <Vital label="Pain" value={String(c.vitals.painScore)} unit="/10" tone="var(--peach)" />
+          <Vital label="MM" value={c.vitals.mmColor} unit="" tone="white" />
         </div>
 
         {/* Tab strip */}
@@ -146,7 +146,7 @@ export function ExamineOverlay({ onClose, onDispatch }: Props) {
             display: 'flex',
             gap: 8,
             padding: '12px 22px 0',
-            borderBottom: '3px solid var(--line)',
+            borderBottom: '1px solid #D5D8DA',
             background: 'white',
           }}
         >
@@ -163,9 +163,9 @@ export function ExamineOverlay({ onClose, onDispatch }: Props) {
                 title={disabled ? 'Submit a diagnosis first' : undefined}
                 style={{
                   background: active ? 'var(--butter)' : 'white',
-                  border: '3px solid var(--line)',
-                  borderBottom: active ? '3px solid var(--butter)' : '3px solid var(--line)',
-                  borderRadius: '14px 14px 0 0',
+                  border: '1px solid #D5D8DA',
+                  borderBottom: active ? '1px solid var(--butter)' : '1px solid #D5D8DA',
+                  borderRadius: '8px 8px 0 0',
                   padding: '10px 16px',
                   fontWeight: 800,
                   fontSize: 13,
@@ -199,7 +199,7 @@ export function ExamineOverlay({ onClose, onDispatch }: Props) {
             style={{
               padding: '12px 14px',
               background: 'var(--cream-2)',
-              border: '3px solid var(--line)',
+              border: '1px solid #D5D8DA',
               borderRadius: 'var(--r-md)',
               boxShadow: 'var(--plush-tiny)',
               marginBottom: 18,
@@ -255,13 +255,11 @@ export function ExamineOverlay({ onClose, onDispatch }: Props) {
 // ── Vital chip ────────────────────────────────────────────────────
 
 function Vital({
-  icon,
   label,
   value,
   unit,
   tone,
 }: {
-  icon: string;
   label: string;
   value: string;
   unit: string;
@@ -271,14 +269,13 @@ function Vital({
     <div
       style={{
         background: tone,
-        border: '3px solid var(--line)',
-        borderRadius: 12,
+        border: '1px solid rgba(32,35,38,0.14)',
+        borderRadius: 8,
         padding: '6px 4px',
         textAlign: 'center',
         boxShadow: 'var(--plush-tiny)',
       }}
     >
-      <div style={{ fontSize: 14 }}>{icon}</div>
       <div style={{ fontWeight: 900, fontSize: 16, lineHeight: 1 }}>{value}</div>
       <div style={{ fontSize: 10, fontWeight: 700 }}>
         {label} <span style={{ opacity: 0.6 }}>{unit}</span>
@@ -404,7 +401,7 @@ function TestsTab({ patient }: { patient: NonNullable<ReturnType<typeof useGameS
       {/* Panels — clinic-scoped, collapsible. */}
       {visiblePanels.length > 0 && (
         <CollapsibleSection
-          icon="🧪"
+          icon="Panel"
           label={`Panels for ${currentClinic === 'all-specialties' ? 'every specialty' : 'this clinic'}`}
           count={visiblePanels.length}
           tone="var(--butter)"
@@ -439,7 +436,7 @@ function TestsTab({ patient }: { patient: NonNullable<ReturnType<typeof useGameS
                         fontSize: 10,
                         fontWeight: 800,
                         background: 'var(--cream)',
-                        border: '2px solid var(--line)',
+                        border: '1px solid #D5D8DA',
                         borderRadius: 'var(--r-pill)',
                         padding: '1px 7px',
                         whiteSpace: 'nowrap',
@@ -463,7 +460,7 @@ function TestsTab({ patient }: { patient: NonNullable<ReturnType<typeof useGameS
         const list = groups[cat];
         const available = list.filter((t) => !ordered.has(t.id));
         const label = cat === 'bedside' ? 'Bedside' : cat === 'lab' ? 'Laboratory' : 'Imaging';
-        const icon = cat === 'bedside' ? '🩺' : cat === 'lab' ? '🧬' : '📷';
+        const icon = cat === 'bedside' ? 'Exam' : cat === 'lab' ? 'Lab' : 'Image';
         const tone = cat === 'bedside' ? 'var(--mint)' : cat === 'lab' ? 'var(--sky)' : 'var(--peach)';
         return (
           <CollapsibleSection
@@ -516,7 +513,7 @@ function TestsTab({ patient }: { patient: NonNullable<ReturnType<typeof useGameS
                           textTransform: 'uppercase',
                           color: isOrdered ? 'var(--mint-deep)' : 'var(--ink-2)',
                           background: 'var(--cream)',
-                          border: '2px solid var(--line)',
+                          border: '1px solid #D5D8DA',
                           borderRadius: 'var(--r-pill)',
                           padding: '1px 7px',
                           whiteSpace: 'nowrap',
@@ -583,7 +580,7 @@ function CollapsibleSection({
             alignItems: 'center',
             gap: 6,
             background: tone,
-            border: '3px solid var(--line)',
+            border: '1px solid #D5D8DA',
             borderRadius: 'var(--r-pill)',
             padding: '3px 12px',
             fontWeight: 800,
@@ -690,7 +687,7 @@ function ResultsTab({ patient }: { patient: NonNullable<ReturnType<typeof useGam
                   height: 10,
                   borderRadius: '50%',
                   background: tone,
-                  border: '2px solid var(--line)',
+                  border: '1px solid #D5D8DA',
                 }}
               />
               <span>{test.name}</span>
@@ -707,8 +704,8 @@ function ResultsTab({ patient }: { patient: NonNullable<ReturnType<typeof useGam
                     style={{
                       margin: 0,
                       background: '#0b0b0d',
-                      borderRadius: 12,
-                      border: '2px solid var(--line)',
+                      borderRadius: 8,
+                      border: '1px solid #D5D8DA',
                       overflow: 'hidden',
                     }}
                   >
@@ -756,7 +753,7 @@ function ResultsTab({ patient }: { patient: NonNullable<ReturnType<typeof useGam
                   listStyle: 'none',
                 }}
               >
-                {images.length > 0 ? '▸ Show written report' : '▸ Show details'}
+                {images.length > 0 ? 'Show written report' : 'Show details'}
               </summary>
               <div
                 style={{
@@ -767,8 +764,8 @@ function ResultsTab({ patient }: { patient: NonNullable<ReturnType<typeof useGam
                   fontFamily: 'ui-monospace, monospace',
                   background: 'var(--cream)',
                   padding: 10,
-                  borderRadius: 10,
-                  border: '2px solid var(--line)',
+                  borderRadius: 8,
+                  border: '1px solid #D5D8DA',
                 }}
               >
                 {report?.text ?? 'Pending…'}
@@ -808,8 +805,8 @@ function ResultsTab({ patient }: { patient: NonNullable<ReturnType<typeof useGam
               right: 16,
               background: 'rgba(255,255,255,0.12)',
               color: 'white',
-              border: '2px solid rgba(255,255,255,0.25)',
-              borderRadius: 12,
+              border: '1px solid rgba(255,255,255,0.25)',
+              borderRadius: 8,
               padding: '8px 14px',
               fontWeight: 800,
               fontSize: 13,
@@ -818,7 +815,7 @@ function ResultsTab({ patient }: { patient: NonNullable<ReturnType<typeof useGam
             }}
             title="Close (Esc)"
           >
-            ✕ Close
+            Close
           </button>
           <img
             src={zoomed.url}
@@ -961,7 +958,7 @@ function DiagnoseTab({
             style={{ fontSize: 16, padding: '14px 0' }}
             onClick={onGoToRx}
           >
-            Write prescription →
+            Write prescription
           </button>
           <button
             type="button"
@@ -969,7 +966,7 @@ function DiagnoseTab({
             style={{ fontSize: 16, padding: '14px 0' }}
             onClick={onDispatch}
           >
-            Dispatch without Rx →
+            Dispatch without Rx
           </button>
         </div>
       )}
@@ -1036,9 +1033,8 @@ function ChatTab({ patientName }: { patientName: string }) {
               alignSelf: mine ? 'flex-end' : 'flex-start',
               maxWidth: '78%',
               background: mine ? 'var(--sky)' : 'white',
-              border: '3px solid var(--line)',
-              borderRadius:
-                mine ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+              border: '1px solid #D5D8DA',
+              borderRadius: 8,
               padding: '10px 14px',
               boxShadow: 'var(--plush-tiny)',
               fontSize: 13,
@@ -1285,8 +1281,8 @@ function RxTab({
               key={med.id}
               style={{
                 background: 'white',
-                border: '3px solid var(--line)',
-                borderRadius: 12,
+                border: '1px solid #D5D8DA',
+                borderRadius: 8,
                 padding: 10,
                 display: 'flex',
                 flexDirection: 'column',
@@ -1313,7 +1309,7 @@ function RxTab({
                   }}
                   title="Remove"
                 >
-                  ✕
+                  Remove
                 </button>
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -1344,7 +1340,7 @@ function RxTab({
             onClick={onSubmitAll}
             style={{ fontSize: 14, padding: '10px 18px' }}
           >
-            ➕ Add {pickedList.length} to prescription
+            Add {pickedList.length} to prescription
           </button>
         </div>
       )}
@@ -1355,7 +1351,7 @@ function RxTab({
         style={{ fontSize: 18, padding: '14px 0' }}
         onClick={onDispatch}
       >
-        {submitted.length === 0 ? 'Dispatch without prescription →' : 'Dispatch patient →'}
+        {submitted.length === 0 ? 'Dispatch without prescription' : 'Dispatch patient'}
       </button>
     </div>
   );
@@ -1366,8 +1362,8 @@ const inputStyle: React.CSSProperties = {
   width: '100%',
   marginTop: 4,
   padding: '8px 10px',
-  border: '3px solid var(--line)',
-  borderRadius: 12,
+  border: '1px solid #D5D8DA',
+  borderRadius: 8,
   fontFamily: 'inherit',
   fontWeight: 700,
   fontSize: 13,

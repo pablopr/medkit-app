@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Premium veterinary consultation room</title>
+  <desc id="desc">A quiet clinical room with a consultation desk, dog, cat carrier, exam table, and restrained Barkibu accent.</desc>
+  <defs>
+    <linearGradient id="wall" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#f7f5ef"/>
+      <stop offset="1" stop-color="#e7e1d6"/>
+    </linearGradient>
+    <linearGradient id="floor" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#cfd4d0"/>
+      <stop offset="1" stop-color="#aeb7b3"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#dfe9ee" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#a9bdc7" stop-opacity=".82"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#202326" flood-opacity=".18"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f4f1ea"/>
+  <path d="M0 0h1600v620H0z" fill="url(#wall)"/>
+  <path d="M0 575h1600v325H0z" fill="url(#floor)"/>
+  <path d="M0 575h1600" stroke="#d5ccc0" stroke-width="10"/>
+
+  <g opacity=".28" stroke="#ffffff" stroke-width="3">
+    <path d="M60 654h1480"/>
+    <path d="M20 730h1560"/>
+    <path d="M0 812h1600"/>
+    <path d="M270 575 150 900"/>
+    <path d="M550 575 510 900"/>
+    <path d="M825 575 855 900"/>
+    <path d="M1120 575 1260 900"/>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <rect x="118" y="128" width="390" height="282" rx="8" fill="#25282b"/>
+    <rect x="136" y="146" width="354" height="246" rx="4" fill="url(#glass)"/>
+    <path d="M136 300h354M314 146v246" stroke="#f4f1ea" stroke-width="8" opacity=".82"/>
+    <path d="M154 358c68-56 138-62 210-4 38-34 74-44 126-24v62H154z" fill="#607b68" opacity=".42"/>
+    <circle cx="430" cy="196" r="38" fill="#f2c66d" opacity=".55"/>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <rect x="1120" y="142" width="278" height="384" rx="8" fill="#31302d"/>
+    <rect x="1138" y="160" width="242" height="348" rx="3" fill="#fbfaf5"/>
+    <text x="1259" y="208" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="700" fill="#2d3133">CANINE &amp; FELINE</text>
+    <text x="1259" y="238" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" fill="#687179">CLINICAL ANATOMY</text>
+    <path d="M1192 338c34-46 112-48 146 0 18 26 12 73-22 92-34 18-92 16-122-8-28-23-25-58-2-84z" fill="#ede3d4" stroke="#687179" stroke-width="4"/>
+    <path d="M1221 348c-20-48-10-90 38-112 48 22 58 64 38 112" fill="none" stroke="#687179" stroke-width="5"/>
+    <circle cx="1258" cy="356" r="26" fill="#c65325" opacity=".78"/>
+    <path d="M1190 470h138M1190 494h112M1190 518h154" stroke="#a9b0b3" stroke-width="6" stroke-linecap="round"/>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <rect x="612" y="442" width="456" height="70" rx="8" fill="#f9faf8"/>
+    <rect x="652" y="512" width="376" height="26" rx="4" fill="#b9c2bd"/>
+    <rect x="676" y="538" width="24" height="174" rx="8" fill="#737d7a"/>
+    <rect x="984" y="538" width="24" height="174" rx="8" fill="#737d7a"/>
+    <rect x="732" y="392" width="216" height="54" rx="6" fill="#dbe4e0"/>
+    <rect x="746" y="404" width="188" height="30" rx="3" fill="#f9faf8"/>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <rect x="1040" y="594" width="290" height="82" rx="12" fill="#f8f7f2"/>
+    <rect x="1084" y="676" width="24" height="118" rx="6" fill="#78827e"/>
+    <rect x="1260" y="676" width="24" height="118" rx="6" fill="#78827e"/>
+    <rect x="1084" y="628" width="204" height="32" rx="6" fill="#e96f3c" opacity=".82"/>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <ellipse cx="529" cy="762" rx="162" ry="32" fill="#202326" opacity=".12"/>
+    <ellipse cx="506" cy="632" rx="134" ry="70" fill="#9b765b"/>
+    <ellipse cx="379" cy="606" rx="62" ry="55" fill="#9b765b"/>
+    <path d="M346 576c-12-34 4-73 40-88 8 32 4 60-15 86zM420 576c20-31 56-42 92-24-20 24-48 37-83 39z" fill="#7d6049"/>
+    <ellipse cx="351" cy="620" rx="22" ry="16" fill="#ede3d4"/>
+    <circle cx="359" cy="602" r="7" fill="#202326"/>
+    <circle cx="407" cy="598" r="7" fill="#202326"/>
+    <circle cx="378" cy="621" r="8" fill="#202326"/>
+    <path d="M610 600c76-20 108 26 92 88" fill="none" stroke="#9b765b" stroke-width="28" stroke-linecap="round"/>
+    <path d="M428 690v82M500 696v86M590 688v82" stroke="#7d6049" stroke-width="28" stroke-linecap="round"/>
+    <rect x="456" y="552" width="128" height="24" rx="12" fill="#3f8f72"/>
+    <circle cx="486" cy="564" r="7" fill="#f4f1ea"/>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <rect x="770" y="646" width="210" height="126" rx="18" fill="#c6c0b6"/>
+    <rect x="792" y="668" width="166" height="72" rx="8" fill="#25282b"/>
+    <path d="M818 670v68M858 670v68M898 670v68M938 670v68" stroke="#838b86" stroke-width="8"/>
+    <ellipse cx="874" cy="734" rx="74" ry="22" fill="#202326" opacity=".35"/>
+    <ellipse cx="852" cy="700" rx="58" ry="36" fill="#5a5f61"/>
+    <path d="M811 681 794 642l38 28M894 681l30-35-6 45" fill="#5a5f61"/>
+    <circle cx="834" cy="699" r="6" fill="#f2eee7"/>
+    <circle cx="875" cy="698" r="6" fill="#f2eee7"/>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <rect x="640" y="172" width="300" height="152" rx="14" fill="#ffffff"/>
+    <rect x="664" y="198" width="252" height="12" rx="6" fill="#dce3e0"/>
+    <rect x="664" y="228" width="180" height="10" rx="5" fill="#dce3e0"/>
+    <rect x="664" y="260" width="214" height="10" rx="5" fill="#dce3e0"/>
+    <rect x="664" y="288" width="120" height="10" rx="5" fill="#dce3e0"/>
+    <rect x="786" y="282" width="100" height="26" rx="13" fill="#e96f3c"/>
+    <text x="836" y="300" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#fff">Barkibu</text>
+  </g>
+</svg>

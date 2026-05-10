@@ -1,6 +1,14 @@
-export type PaletteName = 'sunshine' | 'candy' | 'forest';
+export type PaletteName = 'clinical' | 'sunshine' | 'candy' | 'forest';
 
 const PALETTES: Record<PaletteName, Record<string, string>> = {
+  clinical: {
+    '--cream': '#F4F1EA', '--cream-2': '#E9E4DA',
+    '--peach': '#E96F3C', '--peach-deep': '#C65325',
+    '--butter': '#D6A43B', '--butter-deep': '#A77A20',
+    '--mint': '#A8D7C2', '--mint-deep': '#3F8F72',
+    '--sky': '#D8E3EA', '--sky-deep': '#557B90',
+    '--rose': '#E0B5AE', '--rose-deep': '#A84F43',
+  },
   sunshine: {
     '--cream': '#FFF6E6', '--cream-2': '#FFEFD1',
     '--peach': '#FFB68A', '--peach-deep': '#FF8E5C',
@@ -28,7 +36,7 @@ const PALETTES: Record<PaletteName, Record<string, string>> = {
 };
 
 export function applyPalette(name: PaletteName) {
-  const p = PALETTES[name] ?? PALETTES.sunshine;
+  const p = PALETTES[name] ?? PALETTES.clinical;
   const root = document.documentElement;
   for (const [k, v] of Object.entries(p)) root.style.setProperty(k, v);
 }

@@ -129,11 +129,11 @@ export function FloatingVoicePanel({
           minWidth: 240,
           maxWidth: 320,
           background: 'white',
-          border: '3px solid var(--line)',
+          border: '1px solid #D5D8DA',
           borderRadius: 'var(--r-md)',
-          boxShadow: '0 4px 0 var(--line), 0 8px 16px rgba(43,30,22,0.18)',
+          boxShadow: 'var(--plush)',
           padding: '10px 14px 12px',
-          fontFamily: 'Nunito, system-ui, sans-serif',
+          fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
           color: 'var(--ink)',
         }}
       >
@@ -146,7 +146,7 @@ export function FloatingVoicePanel({
             marginBottom: 6,
           }}
         >
-          <div style={{ fontSize: 14, fontWeight: 900, letterSpacing: '-0.01em' }}>
+          <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: 0 }}>
             {patient.case.name}
             <span style={{ fontSize: 11, color: 'var(--ink-soft)', marginLeft: 6, fontWeight: 700 }}>
               {patient.case.species === 'dog' ? 'dog' : 'cat'} · {patient.case.weightKg} kg · owner {patient.case.ownerName}
@@ -166,7 +166,7 @@ export function FloatingVoicePanel({
               padding: '3px 8px',
               borderRadius: 'var(--r-pill)',
               background: 'var(--cream)',
-              border: '2px solid var(--line)',
+              border: '1px solid #D5D8DA',
             }}
           >
             <span
@@ -199,45 +199,17 @@ export function FloatingVoicePanel({
               marginTop: 8,
               padding: '6px 10px',
               background: 'var(--rose)',
-              border: '2.5px solid var(--line)',
-              borderRadius: 10,
-              boxShadow: '0 2px 0 var(--line)',
+              border: '1px solid rgba(168,79,67,0.28)',
+              borderRadius: 8,
+              boxShadow: 'none',
               fontSize: 11,
               fontWeight: 800,
               color: 'var(--ink)',
             }}
           >
-            ⚠ {error}
+            {error}
           </div>
         )}
-
-        {/* Speech-bubble tail — outline + fill stack matches the cozy SpeechBubble. */}
-        <div
-          style={{
-            position: 'absolute',
-            left: '50%',
-            bottom: -12,
-            transform: 'translateX(-50%)',
-            width: 0,
-            height: 0,
-            borderLeft: '12px solid transparent',
-            borderRight: '12px solid transparent',
-            borderTop: '12px solid var(--line)',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            left: '50%',
-            bottom: -8,
-            transform: 'translateX(-50%)',
-            width: 0,
-            height: 0,
-            borderLeft: '9px solid transparent',
-            borderRight: '9px solid transparent',
-            borderTop: '9px solid white',
-          }}
-        />
       </div>
     </Html>
   );
