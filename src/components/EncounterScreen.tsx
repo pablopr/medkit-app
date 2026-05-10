@@ -1,5 +1,6 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { LogOut, Mic, MicOff } from 'lucide-react';
 import { Html } from '@react-three/drei';
 import type { PerspectiveCamera } from 'three';
 import {
@@ -103,13 +104,13 @@ function Loader() {
     <Html center>
       <div
         style={{
-          fontFamily: 'Nunito, sans-serif',
+          fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
           fontWeight: 800,
           color: 'var(--peach-deep)',
           background: 'white',
           padding: '8px 14px',
-          border: '3px solid var(--line)',
-          borderRadius: 'var(--r-pill)',
+          border: '1px solid #D5D8DA',
+          borderRadius: 8,
           boxShadow: 'var(--plush-tiny)',
           fontSize: 13,
           letterSpacing: '0.05em',
@@ -289,7 +290,7 @@ export function EncounterScreen() {
   };
 
   const handleInteract = (kind: 'desk' | 'bed' | 'triage', bedIndex?: number) => {
-    // E (examine) on the patient — open the cozy examine overlay so the
+    // E (examine) on the patient opens the clinical examine overlay so the
     // doctor can take a history, order tests, read results, and submit a
     // diagnosis. The voice agent keeps running underneath so the patient
     // can still answer questions verbally.
@@ -357,7 +358,7 @@ export function EncounterScreen() {
         <Canvas
           shadows
           camera={{ position: playerSpawn, fov: 55 }}
-          style={{ background: 'linear-gradient(#f0ebe1, #e3dac7)' }}
+          style={{ background: 'linear-gradient(#E9ECEB, #D9DEDA)' }}
         >
           <AdaptiveCameraFov />
           <Suspense fallback={<Loader />}>
@@ -398,9 +399,9 @@ export function EncounterScreen() {
               e.stopPropagation();
               endConsultation();
             }}
-            style={{ fontSize: 14, padding: '12px 18px' }}
+            style={{ fontSize: 14, padding: '12px 18px', display: 'inline-flex', alignItems: 'center', gap: 8 }}
           >
-            End consultation →
+            End consultation <LogOut size={17} />
           </button>
         </div>
 
@@ -415,8 +416,8 @@ export function EncounterScreen() {
             gap: 8,
             alignItems: 'center',
             background: 'white',
-            border: '2.5px solid var(--line)',
-            borderRadius: 'var(--r-pill)',
+            border: '1px solid #D5D8DA',
+            borderRadius: 8,
             padding: '6px 14px',
             boxShadow: 'var(--plush-tiny)',
             fontSize: 12,
@@ -431,10 +432,7 @@ export function EncounterScreen() {
             </>
           ) : (
             <>
-              <span
-                className={voiceActive ? 'dot breathe' : 'dot'}
-                style={{ background: voiceActive ? 'var(--peach-deep)' : 'var(--ink-soft)' }}
-              />
+              {voiceActive ? <Mic size={14} /> : <MicOff size={14} />}
               {voiceActive ? 'Voice live' : 'Voice muted'} · click the room to look around · <Kbd>E</Kbd> examine · <Kbd>T</Kbd> mute
             </>
           )}

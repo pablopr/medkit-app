@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Doodle, TopBar } from './primitives';
+import { Award } from 'lucide-react';
+import { TopBar } from './primitives';
 import { store, useGameState } from '../game/store';
 import { getPatientCase } from '../data/cases';
 import { TESTS } from '../data/tests';
@@ -72,8 +73,8 @@ function DomainRing({ label, score }: DomainRingProps) {
     <div
       style={{
         background: 'white',
-        border: '3px solid var(--line)',
-        borderRadius: 16,
+        border: '1px solid #D5D8DA',
+        borderRadius: 8,
         padding: 14,
         boxShadow: 'var(--plush-tiny)',
         display: 'flex',
@@ -98,7 +99,7 @@ function DomainRing({ label, score }: DomainRingProps) {
           x="42"
           y="48"
           textAnchor="middle"
-          fontFamily="Nunito"
+          fontFamily="Inter"
           fontWeight="900"
           fontSize="16"
           fill="var(--ink)"
@@ -163,9 +164,9 @@ function Criterion({ status, text, evidence, cite }: CriterionProps) {
         alignItems: 'flex-start',
         padding: 12,
         background: '#FFFCF3',
-        border: '2.5px solid var(--line)',
-        borderRadius: 14,
-        boxShadow: '0 2px 0 var(--line)',
+        border: '1px solid #D5D8DA',
+        borderRadius: 8,
+        boxShadow: 'var(--plush-tiny)',
       }}
     >
       <div
@@ -174,7 +175,7 @@ function Criterion({ status, text, evidence, cite }: CriterionProps) {
           height: 36,
           borderRadius: '50%',
           background: styles.color,
-          border: '2.5px solid var(--line)',
+          border: '1px solid rgba(32,35,38,0.14)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -195,7 +196,7 @@ function Criterion({ status, text, evidence, cite }: CriterionProps) {
               padding: '2px 8px',
               borderRadius: 6,
               background: styles.color,
-              border: '2px solid var(--line)',
+              border: '1px solid rgba(32,35,38,0.14)',
             }}
           >
             {styles.label}
@@ -210,13 +211,13 @@ function Criterion({ status, text, evidence, cite }: CriterionProps) {
             style={{
               marginTop: 8,
               background: 'var(--cream-2)',
-              border: '2.5px dashed var(--line)',
-              borderRadius: 10,
+              border: '1px dashed #CDD2D5',
+              borderRadius: 8,
               padding: '8px 10px',
             }}
           >
             <div style={{ fontSize: 11, fontWeight: 900, color: 'var(--ink)' }}>
-              {'\uD83D\uDCD6 '}{cite.title}
+              Guideline · {cite.title}
             </div>
             <div style={{ fontSize: 12, fontWeight: 600, marginTop: 2 }}>{cite.rec}</div>
             <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--mint-deep)', marginTop: 4 }}>
@@ -316,27 +317,25 @@ function StatusBanner({
         padding: 24,
         position: 'relative',
         marginBottom: 22,
-        transform: 'rotate(-0.4deg)',
       }}
     >
       <div style={{ position: 'absolute', top: -14, left: 24 }} className="chip butter">
         ATTENDING
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
-        <div className="floaty">
-          <div
-            className="plush"
-            style={{
-              width: 110,
-              height: 110,
-              background: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Doodle kind="star" size={86} color="#FFD86B" />
-          </div>
+        <div
+          className="plush"
+          style={{
+            width: 86,
+            height: 86,
+            background: 'white',
+            display: 'grid',
+            placeItems: 'center',
+            color: 'var(--butter-deep)',
+            flexShrink: 0,
+          }}
+        >
+          <Award size={42} strokeWidth={1.7} />
         </div>
         <div style={{ flex: 1 }}>
           <h1 style={{ fontSize: 32, lineHeight: 1.05, margin: '4px 0 8px' }}>{title}</h1>
@@ -392,27 +391,25 @@ function GradingProgress({ partialNarration }: { partialNarration: string }) {
         padding: 24,
         position: 'relative',
         marginBottom: 22,
-        transform: 'rotate(-0.4deg)',
       }}
     >
       <div style={{ position: 'absolute', top: -14, left: 24 }} className="chip butter">
         ATTENDING
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
-        <div className="floaty">
-          <div
-            className="plush"
-            style={{
-              width: 110,
-              height: 110,
-              background: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Doodle kind="star" size={86} color="#FFD86B" />
-          </div>
+        <div
+          className="plush"
+          style={{
+            width: 86,
+            height: 86,
+            background: 'white',
+            display: 'grid',
+            placeItems: 'center',
+            color: 'var(--sky-deep)',
+            flexShrink: 0,
+          }}
+        >
+          <Award size={42} strokeWidth={1.7} />
         </div>
         <div style={{ flex: 1 }}>
           <h1 style={{ fontSize: 32, lineHeight: 1.05, margin: '4px 0 12px' }}>
@@ -432,7 +429,7 @@ function GradingProgress({ partialNarration }: { partialNarration: string }) {
                       width: 12,
                       height: 12,
                       borderRadius: '50%',
-                      border: '2px solid rgba(43,30,22,0.25)',
+                      border: '1px solid rgba(43,30,22,0.25)',
                       borderTopColor: 'var(--ink)',
                       animation: 'gr-spin 0.7s linear infinite',
                     }}
@@ -455,8 +452,8 @@ function GradingProgress({ partialNarration }: { partialNarration: string }) {
                     color: 'var(--ink)',
                     opacity,
                     background: bg,
-                    border: state === 'pending' ? '2px dashed rgba(43,30,22,0.18)' : '2.5px solid var(--line)',
-                    borderRadius: 10,
+                    border: state === 'pending' ? '1px dashed #CDD2D5' : '1px solid #D5D8DA',
+                    borderRadius: 8,
                     padding: '6px 10px',
                     transition: 'opacity 0.3s, background 0.3s',
                   }}
@@ -471,7 +468,7 @@ function GradingProgress({ partialNarration }: { partialNarration: string }) {
                       height: 22,
                       borderRadius: '50%',
                       background: state === 'done' ? 'var(--mint)' : state === 'active' ? 'var(--butter)' : 'var(--cream)',
-                      border: '2px solid var(--line)',
+                      border: '1px solid #D5D8DA',
                       fontSize: 13,
                       fontWeight: 900,
                     }}
@@ -619,7 +616,7 @@ function truncate(s: string, n: number): string {
   return s.slice(0, n) + '\u2026';
 }
 
-// ── EvaluationBody — renders the full cozy debrief from real data ──
+// ── EvaluationBody — renders the full clinical debrief from real data ──
 
 interface BodyProps {
   evaluation: CaseEvaluationInput;
@@ -652,11 +649,11 @@ function EvaluationBody({ evaluation, patient, c }: BodyProps) {
             background: 'var(--rose)',
             padding: 18,
             marginBottom: 18,
-            border: '3px solid var(--line)',
+            border: '1px solid rgba(168,79,67,0.30)',
           }}
         >
           <div className="chip" style={{ background: 'white', marginBottom: 8 }}>
-            {'\u26A0 SAFETY BREACH'}
+            SAFETY BREACH
           </div>
           <div style={{ fontWeight: 800, fontSize: 16, lineHeight: 1.4 }}>
             {evaluation.safety_breach.what}
@@ -668,12 +665,12 @@ function EvaluationBody({ evaluation, patient, c }: BodyProps) {
                 style={{
                   marginTop: 10,
                   background: 'white',
-                  border: '2.5px dashed var(--line)',
-                  borderRadius: 10,
+                  border: '1px dashed #CDD2D5',
+                  borderRadius: 8,
                   padding: '8px 10px',
                 }}
               >
-                <div style={{ fontSize: 11, fontWeight: 900 }}>{'\uD83D\uDCD6 '}{cite.title}</div>
+                <div style={{ fontSize: 11, fontWeight: 900 }}>Guideline · {cite.title}</div>
                 <div style={{ fontSize: 12, fontWeight: 600, marginTop: 2 }}>{cite.rec}</div>
                 <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--mint-deep)', marginTop: 4 }}>
                   {cite.loE}
@@ -691,27 +688,25 @@ function EvaluationBody({ evaluation, patient, c }: BodyProps) {
           padding: 24,
           position: 'relative',
           marginBottom: 22,
-          transform: 'rotate(-0.4deg)',
         }}
       >
         <div style={{ position: 'absolute', top: -14, left: 24 }} className="chip butter">
           YOUR MARK
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
-          <div className="floaty">
-            <div
-              className="plush"
-              style={{
-                width: 110,
-                height: 110,
-                background: 'white',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Doodle kind="star" size={86} color="#FFD86B" />
-            </div>
+          <div
+            className="plush"
+            style={{
+              width: 86,
+              height: 86,
+              background: 'white',
+              display: 'grid',
+              placeItems: 'center',
+              color: GLOBAL_DEEP[verdict],
+              flexShrink: 0,
+            }}
+          >
+            <Award size={42} strokeWidth={1.7} />
           </div>
           <div style={{ flex: 1 }}>
             <div
@@ -826,7 +821,7 @@ function BarkibuEstimateCard({ estimate }: { estimate: BarkibuSupportEstimate })
         padding: 18,
         marginBottom: 22,
         background: 'var(--sky)',
-        border: '3px solid var(--line)',
+        border: '1px solid rgba(85,123,144,0.25)',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 18 }}>

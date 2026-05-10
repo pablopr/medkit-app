@@ -43,7 +43,7 @@ function TrendChart() {
             strokeWidth="1.5"
             strokeDasharray="3 5"
           />
-          <text x={4} y={y(g) + 4} fontSize="9" fontFamily="Nunito" fontWeight="800" fill="var(--ink-2)">
+          <text x={4} y={y(g) + 4} fontSize="9" fontFamily="Inter" fontWeight="800" fill="var(--ink-2)">
             {g}
           </text>
         </g>

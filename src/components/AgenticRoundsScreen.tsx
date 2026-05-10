@@ -222,9 +222,9 @@ const NODES: NodeDef[] = [
     subtitle: 'Verdict, domain rings, criterion rows + cite-cards.',
     doodle: 'heart',
     details: {
-      what: 'The trainee\'s view of the agent\'s grading. Cozy plush layout — verdict banner, three domain progress rings, per-criterion rows with MET/PARTIAL/MISSED icons, expandable cite-cards quoting the verbatim NICE/ESC/AHA recommendation, highlights + improvements list, action chips.',
+      what: 'The trainee\'s view of the agent\'s grading. Clinical review layout: verdict banner, three domain progress rings, per-criterion rows with MET/PARTIAL/MISSED states, expandable cite-cards quoting the verbatim NICE/ESC/AHA recommendation, highlights, improvements list, and action chips.',
       files: [
-        { path: 'src/components/DebriefScreen.tsx', label: 'cozy screen, live data' },
+        { path: 'src/components/DebriefScreen.tsx', label: 'clinical screen, live data' },
         { path: 'src/components/CaseEvaluationCard.tsx', label: 'reusable standalone card' },
       ],
     },
@@ -628,9 +628,9 @@ function LaneLabel({ y, label, sub }: { y: number; label: string; sub: string })
     <g transform={`translate(40 ${y})`}>
       <rect width={w} height={28} rx="14" ry="14"
         fill="var(--paper)" stroke="var(--line)" strokeWidth="2.5" />
-      <text x={14} y={19} fontFamily="Nunito, sans-serif" fontWeight={900} fontSize="12"
+      <text x={14} y={19} fontFamily="Inter, sans-serif" fontWeight={900} fontSize="12"
         letterSpacing=".1em" fill="var(--ink)">{label}</text>
-      <text x={labelW + 8} y={19} fontFamily="Nunito, sans-serif" fontWeight={700} fontSize="11"
+      <text x={labelW + 8} y={19} fontFamily="Inter, sans-serif" fontWeight={700} fontSize="11"
         opacity={0.6} fill="var(--ink-2)">{sub}</text>
     </g>
   );
@@ -691,7 +691,7 @@ function EdgeLabel({ edge }: { edge: EdgeDef }) {
         x={0}
         y={5}
         textAnchor="middle"
-        fontFamily="Nunito, sans-serif"
+        fontFamily="Inter, sans-serif"
         fontWeight={800}
         fontSize="12"
         fill="var(--ink)"
@@ -755,20 +755,20 @@ function Node({
         <rect width={tagLabel.length * 7 + 14} height={22} rx="11" ry="11"
           fill="var(--paper)" stroke="var(--line)" strokeWidth="2" />
         <text x={(tagLabel.length * 7 + 14) / 2} y={15} textAnchor="middle"
-          fontFamily="Nunito, sans-serif" fontWeight={900} fontSize="10"
+          fontFamily="Inter, sans-serif" fontWeight={900} fontSize="10"
           letterSpacing=".08em" fill="var(--ink)">
           {tagLabel}
         </text>
       </g>
       {/* Title */}
-      <text x={18} y={36} fontFamily="Nunito, sans-serif" fontWeight={900} fontSize="18" fill="var(--ink)">
+      <text x={18} y={36} fontFamily="Inter, sans-serif" fontWeight={900} fontSize="18" fill="var(--ink)">
         {node.title}
       </text>
       {/* Subtitle (wrapped) */}
       <foreignObject x={18} y={46} width={node.w - 36} height={node.h - 60}>
         <div
           style={{
-            fontFamily: 'Nunito, sans-serif',
+            fontFamily: 'Inter, sans-serif',
             fontSize: 12,
             lineHeight: 1.35,
             fontWeight: 600,
@@ -797,7 +797,7 @@ function Node({
             x={-(node.badge.length * 6.2 + 10) / 2}
             y={-7}
             textAnchor="middle"
-            fontFamily="Nunito, sans-serif"
+            fontFamily="Inter, sans-serif"
             fontWeight={800}
             fontSize="10"
             fill="var(--ink)"

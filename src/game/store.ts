@@ -40,17 +40,16 @@ function writeOnboarded(v: boolean) {
 }
 
 const DEFAULT_TWEAKS: Tweaks = {
-  palette: 'sunshine',
-  avatarStyle: 'animal',
-  intensity: 2,
+  palette: 'clinical',
+  avatarStyle: 'initials',
+  intensity: 0.8,
   roomLayout: 'side',
 };
 
 /** Resolve the full medkit `PatientCase` (anamnesis, vitals, diagnosis
- *  options, etc.) for a cozy-cartoon `Case`. If we can't find one in the
- *  catalogue (shouldn't happen — the cartoon library is derived FROM the
- *  catalogue), fall back to a minimal stub built from the cartoon shape so
- *  the voice agent + 3D scene still get something to render. */
+ *  options, etc.) for a Vetkit `Case`. If we can't find one in the
+ *  catalogue, fall back to a minimal veterinary stub so the voice agent and
+ *  3D scene still get something to render. */
 function toPatientCase(c: MedKitCase): PatientCase {
   const real = getPatientCase(c.id);
   if (real) return real;

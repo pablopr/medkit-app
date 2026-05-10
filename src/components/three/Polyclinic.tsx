@@ -60,32 +60,32 @@ const OUTER_WIDTH = WORLD_RIGHT_X - WORLD_LEFT_X;
 const OUTER_CENTER_X = (WORLD_LEFT_X + WORLD_RIGHT_X) / 2;
 
 const PALETTE = {
-  skin: '#e4b896',
-  sheet: '#f5f1e8',
-  hair: '#3a2a1f',
-  scrubsDoc: '#5e8ba3',
-  patientTop: '#b8a890',
-  patientPants: '#4a4035',
-  floor: '#d0a878',
-  floorPlank: '#c19565',
-  floorSeam: '#6a4a32',
-  wall: '#f4ecd8',
-  wallLow: '#d4b28a',
-  wallTrim: '#f7ecd4',
-  ceiling: '#fbf3dd',
-  ceilingTrim: '#e8d4ac',
-  trim: '#c89060',
-  accent: '#d65d2f',
-  wood: '#9a7648',
-  woodDark: '#563a20',
-  leather: '#3a2820',
-  plant: '#486b3a',
-  pot: '#8a5a32',
-  paper: '#fbf7ec',
-  brass: '#c89a54',
-  rugRed: '#8a3628',
-  barkibu: '#f2763d',
-  barkibuMint: '#9fe0c2',
+  skin: '#d2a987',
+  sheet: '#f4f7f5',
+  hair: '#2f2722',
+  scrubsDoc: '#446a78',
+  patientTop: '#7b817d',
+  patientPants: '#383d3c',
+  floor: '#cfd5d1',
+  floorPlank: '#bcc6c1',
+  floorSeam: '#9ea8a3',
+  wall: '#f3f1eb',
+  wallLow: '#d9d7ce',
+  wallTrim: '#ffffff',
+  ceiling: '#f7f7f3',
+  ceilingTrim: '#d8ddd9',
+  trim: '#b8c0bc',
+  accent: '#e96f3c',
+  wood: '#a78d72',
+  woodDark: '#554a40',
+  leather: '#2f3335',
+  plant: '#4f6e5d',
+  pot: '#76695e',
+  paper: '#fbfaf6',
+  brass: '#9b8b69',
+  rugRed: '#6d716f',
+  barkibu: '#e96f3c',
+  barkibuMint: '#a8d7c2',
 };
 
 const FRONT_WALL_SEGMENTS = [
@@ -334,15 +334,15 @@ function Lighting() {
           everything drifting toward amber. Previously tinted warm which,
           on top of the hemisphere + directional, made the whole room look
           like a sepia filter. */}
-      <ambientLight intensity={0.55} color="#ffffff" />
+      <ambientLight intensity={0.62} color="#ffffff" />
       {/* Soft sky / floor bounce — brighter + less saturated than before */}
-      <hemisphereLight args={['#f6f0e4', '#a89a84', 0.7]} />
+      <hemisphereLight args={['#f7fbff', '#aeb8b3', 0.72]} />
       {/* Key: "window" daylight through the left wall — still warm, just
           a touch less orange so walls don't look stained. */}
       <directionalLight
         position={[-10, 8, 4]}
-        intensity={1.3}
-        color="#fff0d4"
+        intensity={1.15}
+        color="#f6fbff"
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
@@ -354,13 +354,13 @@ function Lighting() {
         shadow-camera-far={30}
       />
       {/* Fill from the opposite side — cooler, much softer, no shadows */}
-      <directionalLight position={[6, 6, 6]} intensity={0.35} color="#c9d8e8" />
+      <directionalLight position={[6, 6, 6]} intensity={0.42} color="#d8e6ee" />
       {/* Rim behind the doctor to separate the back wall from the figure */}
-      <directionalLight position={[0, 3, -8]} intensity={0.4} color="#ffb37a" />
+      <directionalLight position={[0, 3, -8]} intensity={0.28} color="#dce5e1" />
       {/* Patient-chair fill — warm, practical */}
-      <pointLight position={[0, 2.4, ROOM_BACK_Z + 4.2]} intensity={0.45} distance={6} color="#ffd89a" />
+      <pointLight position={[0, 2.4, ROOM_BACK_Z + 4.2]} intensity={0.32} distance={6} color="#f3f7f5" />
       {/* Desk fill — subtle emphasis on the doctor side */}
-      <pointLight position={[0, 2.4, ROOM_BACK_Z + 1.6]} intensity={0.35} distance={5} color="#ffe4b8" />
+      <pointLight position={[0, 2.4, ROOM_BACK_Z + 1.6]} intensity={0.3} distance={5} color="#f3f7f5" />
     </>
   );
 }
@@ -371,14 +371,14 @@ function CeilingLight({ position }: { position: [number, number, number] }) {
       {/* recessed housing */}
       <mesh position={[0, 0.03, 0]}>
         <boxGeometry args={[1.6, 0.06, 0.5]} />
-        <meshStandardMaterial color={PALETTE.woodDark} />
+        <meshStandardMaterial color="#C9D1CD" metalness={0.2} roughness={0.35} />
       </mesh>
       {/* diffuser panel */}
       <mesh>
         <boxGeometry args={[1.5, 0.04, 0.4]} />
-        <meshStandardMaterial color="#fff6dc" emissive="#ffe6b0" emissiveIntensity={1.6} toneMapped={false} />
+        <meshStandardMaterial color="#f8fbfa" emissive="#e9f2f0" emissiveIntensity={1.35} toneMapped={false} />
       </mesh>
-      <pointLight intensity={0.35} distance={7} color="#ffe4b8" />
+      <pointLight intensity={0.28} distance={7} color="#edf6f4" />
     </group>
   );
 }
@@ -400,30 +400,27 @@ interface MonitorPatient {
 /** Canvas texture for the consultation desk monitor. Renders a calm patient
  *  record card (no vitals trace — this isn't an ICU monitor, just the
  *  doctor's desktop EMR application). The card is populated from the
- *  current polyclinic patient and uses the cozy MedKit palette. */
+ *  current polyclinic patient and uses the clinical Vetkit palette. */
 function makeMonitorTexture(patient: MonitorPatient | null): CanvasTexture {
   const w = 512, h = 320;
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
   const ctx = c.getContext('2d')!;
 
-  // Sunshine cream background, matching --paper / --cream-2.
-  ctx.fillStyle = '#FFF6E6';
+  ctx.fillStyle = '#F7F8F6';
   ctx.fillRect(0, 0, w, h);
 
-  // Title bar — peach accent like the cozy app's primary CTA.
-  ctx.fillStyle = '#FFB68A';
+  ctx.fillStyle = '#DDE5E1';
   ctx.fillRect(0, 0, w, 40);
-  ctx.fillStyle = '#3B2A1F';
-  ctx.font = 'bold 17px "Nunito", sans-serif';
+  ctx.fillStyle = '#202326';
+  ctx.font = '700 17px "Inter", sans-serif';
   ctx.fillText('vetkit · Pet Record', 14, 26);
-  ctx.fillStyle = '#5FCFA0';
-  ctx.font = 'bold 12px "Nunito", sans-serif';
+  ctx.fillStyle = '#3F8F72';
+  ctx.font = '700 12px "Inter", sans-serif';
   ctx.fillText('● ACTIVE SESSION', w - 150, 26);
 
-  // Card frame with the signature plush outline.
-  ctx.strokeStyle = '#2B1E16';
-  ctx.lineWidth = 3;
+  ctx.strokeStyle = '#CBD1CE';
+  ctx.lineWidth = 1.5;
   ctx.fillStyle = '#FFFFFF';
   const cardX = 18, cardY = 56, cardW = w - 36, cardH = h - 74;
   ctx.beginPath();
@@ -432,8 +429,8 @@ function makeMonitorTexture(patient: MonitorPatient | null): CanvasTexture {
   ctx.stroke();
 
   if (!patient) {
-    ctx.fillStyle = '#8E7261';
-    ctx.font = '600 14px "Nunito", sans-serif';
+    ctx.fillStyle = '#79818A';
+    ctx.font = '600 14px "Inter", sans-serif';
     ctx.fillText('No active patient. Accept the next patient to begin.', cardX + 18, cardY + cardH / 2);
     const tex = new THREE.CanvasTexture(c);
     tex.colorSpace = THREE.SRGBColorSpace;
@@ -444,22 +441,22 @@ function makeMonitorTexture(patient: MonitorPatient | null): CanvasTexture {
   const initials = patient.name.split(' ').map((s) => s[0]).slice(0, 2).join('');
   ctx.beginPath();
   ctx.arc(cardX + 44, cardY + 44, 26, 0, Math.PI * 2);
-  ctx.fillStyle = '#FFD86B';
+  ctx.fillStyle = '#D6A43B';
   ctx.fill();
-  ctx.lineWidth = 2.5;
+  ctx.lineWidth = 1.5;
   ctx.stroke();
-  ctx.fillStyle = '#3B2A1F';
-  ctx.font = 'bold 20px "Nunito", sans-serif';
+  ctx.fillStyle = '#202326';
+  ctx.font = '700 20px "Inter", sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText(initials, cardX + 44, cardY + 51);
   ctx.textAlign = 'left';
 
   // Name + demographic header, right of the avatar.
   ctx.fillStyle = '#3B2A1F';
-  ctx.font = 'bold 22px "Nunito", sans-serif';
+  ctx.font = 'bold 22px "Inter", sans-serif';
   ctx.fillText(patient.name, cardX + 84, cardY + 38);
   ctx.fillStyle = '#6B4F3F';
-  ctx.font = '600 14px "Nunito", sans-serif';
+  ctx.font = '600 14px "Inter", sans-serif';
   ctx.fillText(
     `${patient.species === 'dog' ? 'Dog' : 'Cat'} · ${patient.breed ?? 'Mixed breed'} · ${patient.weightKg} kg`,
     cardX + 84,
@@ -477,18 +474,18 @@ function makeMonitorTexture(patient: MonitorPatient | null): CanvasTexture {
   ctx.setLineDash([]);
 
   // Field rows.
-  ctx.font = 'bold 11px "Nunito", sans-serif';
+  ctx.font = 'bold 11px "Inter", sans-serif';
   ctx.fillStyle = '#8E7261';
   ctx.fillText('PATIENT ID', cardX + 18, cardY + 110);
   ctx.fillStyle = '#3B2A1F';
-  ctx.font = '700 14px "Nunito", sans-serif';
+  ctx.font = '700 14px "Inter", sans-serif';
   ctx.fillText(`#${patient.id.toUpperCase()}`, cardX + 18, cardY + 128);
 
-  ctx.font = 'bold 11px "Nunito", sans-serif';
+  ctx.font = 'bold 11px "Inter", sans-serif';
   ctx.fillStyle = '#8E7261';
   ctx.fillText('REASON FOR VISIT', cardX + 18, cardY + 156);
   ctx.fillStyle = '#3B2A1F';
-  ctx.font = '700 13px "Nunito", sans-serif';
+  ctx.font = '700 13px "Inter", sans-serif';
   // wrap chief complaint at ~52 chars
   const maxLineW = cardW - 36;
   const words = `"${patient.chiefComplaint}"`.split(' ');
@@ -506,10 +503,10 @@ function makeMonitorTexture(patient: MonitorPatient | null): CanvasTexture {
   }
   if (line) ctx.fillText(line.trim(), cardX + 18, yPos);
 
-  // Badges along the bottom — mood markers using the cozy chip language.
+  // Badges along the bottom use the restrained clinical chip language.
   const chipY = cardY + cardH - 30;
-  drawChip(ctx, cardX + 18, chipY, '★ accepted', '#A8E5C8');
-  drawChip(ctx, cardX + 124, chipY, '🎙 voice live', '#A6D8FF');
+  drawChip(ctx, cardX + 18, chipY, 'accepted', '#A8E5C8');
+  drawChip(ctx, cardX + 124, chipY, 'voice live', '#A6D8FF');
   drawChip(ctx, cardX + 246, chipY, 'OSCE training', '#FFD86B');
 
   const tex = new THREE.CanvasTexture(c);
@@ -518,7 +515,7 @@ function makeMonitorTexture(patient: MonitorPatient | null): CanvasTexture {
 }
 
 function drawChip(ctx: CanvasRenderingContext2D, x: number, y: number, label: string, fill: string) {
-  ctx.font = 'bold 11px "Nunito", sans-serif';
+  ctx.font = 'bold 11px "Inter", sans-serif';
   const padX = 10;
   const w = ctx.measureText(label).width + padX * 2;
   const h = 22;
@@ -943,7 +940,7 @@ function makeDiplomaTexture(
   // Circular text around the seal
   ctx.fillStyle = '#f4d078';
   ctx.font = 'bold 9px sans-serif';
-  const circText = '★ OFFICIAL SEAL OF MEDICINE ★';
+  const circText = 'VETKIT CLINICAL TRAINING';
   const radius = 40;
   for (let i = 0; i < circText.length; i++) {
     const a = -Math.PI / 2 + (i / circText.length) * Math.PI * 2;
@@ -2053,24 +2050,28 @@ function DogPatientModel({
   const bodyY = critical ? 0.24 : 0.38;
   return (
     <group ref={group}>
-      <mesh position={[0, bodyY, 0]} scale={[0.42, critical ? 0.18 : 0.26, 0.68]} castShadow>
-        <sphereGeometry args={[1, 24, 18]} />
-        <meshStandardMaterial color={color} roughness={0.78} />
+      <mesh position={[0, bodyY, 0]} scale={[0.44, critical ? 0.16 : 0.22, 0.82]} castShadow>
+        <sphereGeometry args={[1, 28, 18]} />
+        <meshStandardMaterial color={color} roughness={0.9} />
       </mesh>
-      <mesh position={[0, critical ? 0.42 : 0.62, -0.55]} scale={[0.28, 0.26, 0.28]} castShadow>
+      <mesh position={[0, critical ? 0.42 : 0.6, -0.63]} scale={[0.25, 0.23, 0.25]} castShadow>
         <sphereGeometry args={[1, 20, 16]} />
-        <meshStandardMaterial color={color} roughness={0.75} />
+        <meshStandardMaterial color={color} roughness={0.88} />
       </mesh>
-      <mesh position={[0, critical ? 0.39 : 0.57, -0.8]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-        <cylinderGeometry args={[0.11, 0.06, 0.24, 14]} />
-        <meshStandardMaterial color="#8a5a3a" roughness={0.8} />
+      <mesh position={[0, critical ? 0.39 : 0.55, -0.87]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+        <cylinderGeometry args={[0.105, 0.055, 0.28, 14]} />
+        <meshStandardMaterial color="#6f4a35" roughness={0.9} />
       </mesh>
       {[-0.14, 0.14].map((x, i) => (
         <mesh key={`dog-ear-${i}`} position={[x, critical ? 0.56 : 0.78, -0.56]} rotation={[0.35, 0, x < 0 ? 0.7 : -0.7]} castShadow>
           <coneGeometry args={[0.08, 0.22, 12]} />
-          <meshStandardMaterial color="#5a3825" roughness={0.85} />
+          <meshStandardMaterial color="#4a3428" roughness={0.92} />
         </mesh>
       ))}
+      <mesh position={[0, critical ? 0.42 : 0.58, -0.48]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.19, 0.018, 8, 28]} />
+        <meshStandardMaterial color={PALETTE.barkibuMint} roughness={0.7} />
+      </mesh>
       {[-0.1, 0.1].map((x, i) => (
         <mesh key={`dog-eye-${i}`} position={[x, critical ? 0.45 : 0.64, -0.81]}>
           <sphereGeometry args={[0.018, 8, 8]} />
@@ -2140,13 +2141,13 @@ function CatPatientModel({
   return (
     <group ref={group}>
       <PetCarrierShell />
-      <mesh position={[0, 0.33, -0.18]} scale={[0.27, critical ? 0.15 : 0.2, 0.34]} castShadow>
+      <mesh position={[0, 0.33, -0.18]} scale={[0.28, critical ? 0.14 : 0.18, 0.4]} castShadow>
         <sphereGeometry args={[1, 20, 14]} />
-        <meshStandardMaterial color={color} roughness={0.82} />
+        <meshStandardMaterial color={color} roughness={0.92} />
       </mesh>
-      <mesh position={[0, 0.48, -0.42]} scale={[0.18, 0.16, 0.16]} castShadow>
+      <mesh position={[0, 0.48, -0.46]} scale={[0.16, 0.15, 0.15]} castShadow>
         <sphereGeometry args={[1, 20, 14]} />
-        <meshStandardMaterial color={color} roughness={0.82} />
+        <meshStandardMaterial color={color} roughness={0.92} />
       </mesh>
       {[-0.08, 0.08].map((x) => (
         <mesh key={`cat-ear-${x}`} position={[x, 0.62, -0.43]} rotation={[0.1, 0, x < 0 ? 0.25 : -0.25]} castShadow>
@@ -2350,16 +2351,15 @@ function Rug({ position, size = [3.2, 4.0] as [number, number] }: { position: [n
     <group position={position}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.012, 0]} receiveShadow>
         <planeGeometry args={size} />
-        <meshStandardMaterial color="#9a6548" roughness={0.95} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1} />
+        <meshStandardMaterial color="#DCE2DE" roughness={0.92} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1} />
       </mesh>
-      {/* inner accent stripe */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.018, 0]}>
         <planeGeometry args={[size[0] * 0.85, size[1] * 0.85]} />
-        <meshStandardMaterial color="#b87856" roughness={0.95} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
+        <meshStandardMaterial color="#C8D1CC" roughness={0.94} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.024, 0]}>
         <planeGeometry args={[size[0] * 0.7, size[1] * 0.7]} />
-        <meshStandardMaterial color="#d6a078" roughness={0.95} polygonOffset polygonOffsetFactor={-3} polygonOffsetUnits={-3} />
+        <meshStandardMaterial color="#F4F7F5" roughness={0.96} polygonOffset polygonOffsetFactor={-3} polygonOffsetUnits={-3} />
       </mesh>
     </group>
   );

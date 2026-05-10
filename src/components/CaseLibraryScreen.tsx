@@ -1,160 +1,92 @@
 import { useMemo, useState } from 'react';
-import { DoodleScatter, PatientFace, TopBar } from './primitives';
+import { AlertTriangle, ArrowLeft, Cat, Dog, Hospital, Shuffle } from 'lucide-react';
+import { TopBar } from './primitives';
 import { CASES, CONDITION_COLORS, type Case } from '../data/cases';
 import { CLINIC_IDS, CLINIC_LABELS, type ClinicId } from '../game/clinic';
-import { store, useTweaks } from '../game/store';
+import { store } from '../game/store';
 
 interface CaseCardProps {
   c: Case;
-  delay?: number;
-  avatarStyle: ReturnType<typeof useTweaks>['avatarStyle'];
 }
 
-function CaseCard({ c, delay = 0, avatarStyle }: CaseCardProps) {
-  const bg = CONDITION_COLORS[c.cond] ?? 'var(--butter)';
+function CaseCard({ c }: CaseCardProps) {
+  const bg = CONDITION_COLORS[c.cond] ?? 'var(--sky)';
+  const SpeciesIcon = c.species === 'dog' ? Dog : Cat;
   return (
-    <div
-      className="tap popin"
+    <button
+      type="button"
+      className="tap plush"
       onClick={() => store.selectCase(c.id)}
-      style={{ animationDelay: `${delay}s`, position: 'relative' }}
+      style={{
+        padding: 0,
+        textAlign: 'left',
+        border: '1px solid #D5D8DA',
+        background: 'white',
+        overflow: 'hidden',
+        minHeight: 248,
+        fontFamily: 'inherit',
+        color: 'var(--ink)',
+      }}
     >
       <div
         style={{
-          position: 'absolute',
-          top: -10,
-          left: 18,
-          zIndex: 2,
-          background: bg,
-          border: '3px solid var(--line)',
-          borderRadius: '10px 10px 0 0',
-          padding: '4px 14px',
-          fontWeight: 800,
-          fontSize: 12,
-          boxShadow: '0 -2px 0 var(--line)',
+          padding: 16,
+          borderBottom: '1px solid #E3E6E8',
+          background: `linear-gradient(135deg, ${bg} 0%, #FFFFFF 88%)`,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          gap: 12,
         }}
       >
-        {c.cond}
-      </div>
-
-      <div
-        className="plush"
-        style={{
-          padding: 14,
-          opacity: c.attempted ? 0.92 : 1,
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        {c.attempted && c.score && (
-          <div
-            style={{
-              position: 'absolute',
-              top: 14,
-              right: -28,
-              transform: 'rotate(38deg)',
-              background: 'var(--mint-deep)',
-              color: 'white',
-              border: '2.5px solid var(--line)',
-              padding: '2px 36px',
-              fontWeight: 900,
-              fontSize: 11,
-              boxShadow: '0 2px 0 var(--line)',
-            }}
-          >
-            {c.score}
+        <div>
+          <div style={{ fontWeight: 800, fontSize: 17, lineHeight: 1.2 }}>{c.name}</div>
+          <div style={{ marginTop: 4, fontWeight: 600, fontSize: 12, color: 'var(--ink-2)' }}>
+            {c.species === 'dog' ? 'Dog' : 'Cat'} · {c.weightKg} kg · owner {c.ownerName}
           </div>
-        )}
-
+        </div>
         <div
           style={{
-            background: bg,
-            borderRadius: 14,
-            border: '3px solid var(--line)',
-            height: 140,
+            width: 42,
+            height: 42,
+            borderRadius: 8,
+            background: 'rgba(255,255,255,0.84)',
             display: 'flex',
-            alignItems: 'flex-end',
+            alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: 10,
-            overflow: 'hidden',
-            position: 'relative',
+            border: '1px solid rgba(32,35,38,0.12)',
           }}
         >
-          <DoodleScatter
-            items={[
-              { kind: 'sparkle', x: 12, y: 10, size: 18, color: '#fff' },
-              { kind: 'sparkle', x: '80%', y: 14, size: 14, color: '#fff' },
-            ]}
-          />
-          <div style={{ marginBottom: -8 }} className="floaty">
-            <PatientFace
-              name={c.name}
-              style={avatarStyle}
-              skin={c.skin}
-              hair={c.hair}
-              size={120}
-              mood={c.mood}
-              accessory={c.accessory}
-            />
-          </div>
+          <SpeciesIcon size={24} strokeWidth={1.8} />
         </div>
+      </div>
 
-        <div style={{ fontWeight: 900, fontSize: 16, lineHeight: 1.15 }}>{c.name}</div>
-        <div style={{ fontWeight: 700, fontSize: 12, color: 'var(--ink-2)', marginBottom: 6 }}>
-          {c.species === 'dog' ? 'Dog' : 'Cat'} · {c.weightKg} kg · owner {c.ownerName}
-        </div>
-        <div style={{ fontSize: 13, color: 'var(--ink)', minHeight: 36, lineHeight: 1.3, fontWeight: 600 }}>
-          "{c.complaint}"
-        </div>
-
-        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 8 }}>
+      <div style={{ padding: 16 }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+          <span className="chip peach">{c.cond}</span>
           {c.tags.slice(0, 2).map((t) => (
-            <span key={t} className="chip" style={{ fontSize: 11, padding: '3px 9px' }}>
+            <span key={t} className="chip">
               {t}
             </span>
           ))}
+          {c.attempted && c.score && <span className="chip mint">{c.score}</span>}
         </div>
-        <div style={{ marginTop: 8, fontSize: 11, fontWeight: 800, color: 'var(--ink-2)' }}>📖 {c.guideline}</div>
+        <div style={{ fontSize: 14, color: 'var(--ink)', minHeight: 58, lineHeight: 1.45, fontWeight: 500 }}>
+          "{c.complaint}"
+        </div>
+        <div style={{ marginTop: 14, fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase' }}>
+          Guideline · {c.guideline}
+        </div>
       </div>
-    </div>
+    </button>
   );
 }
 
 type ClinicFilter = ClinicId | 'all' | 'red-flag';
 
-const CLINIC_ICON: Record<ClinicId, string> = {
-  'all-specialties': '🌈',
-  'internal-medicine': '🩺',
-  cardiology: '❤️',
-  neurology: '🧠',
-  neurosurgery: '🧠',
-  dermatology: '🌿',
-  endocrinology: '🍯',
-  gastroenterology: '🍽️',
-  pulmonology: '🫁',
-  nephrology: '💧',
-  rheumatology: '🦴',
-  hematology: '🩸',
-  oncology: '🎗️',
-  'infectious-disease': '🦠',
-  'allergy-immunology': '🌼',
-  psychiatry: '💭',
-  obgyn: '🌷',
-  urology: '💧',
-  ophthalmology: '👁️',
-  ent: '👂',
-  orthopedics: '🦴',
-  pmr: '🏃',
-  pediatrics: '🧸',
-  'general-surgery': '🔪',
-  'cardiothoracic-vascular-surgery': '🫀',
-};
-
 export function CaseLibraryScreen() {
-  const tweaks = useTweaks();
   const [filter, setFilter] = useState<ClinicFilter>('all');
 
-  // Group every case by its clinic once. The grouping respects
-  // CLINIC_IDS order so sections render in the same canonical order.
   const grouped = useMemo(() => {
     const map = new Map<ClinicId, Case[]>();
     for (const id of CLINIC_IDS) {
@@ -168,8 +100,6 @@ export function CaseLibraryScreen() {
     return map;
   }, []);
 
-  // Apply the active filter to the grouped data so we can render it as
-  // sections without having to re-group inside the JSX.
   const visibleGroups = useMemo<Array<[ClinicId, Case[]]>>(() => {
     if (filter === 'red-flag') {
       const out: Array<[ClinicId, Case[]]> = [];
@@ -195,11 +125,11 @@ export function CaseLibraryScreen() {
     store.selectCase(pick.id);
   };
 
-  const clinicChips: Array<{ id: ClinicFilter; label: string; icon?: string }> = [
-    { id: 'all', label: 'All clinics', icon: '🌈' },
-    { id: 'red-flag', label: 'Red-flag only', icon: '🚩' },
+  const clinicChips: Array<{ id: ClinicFilter; label: string }> = [
+    { id: 'all', label: 'All clinics' },
+    { id: 'red-flag', label: 'Red-flag only' },
     ...CLINIC_IDS.filter((id) => id !== 'all-specialties' && (grouped.get(id)?.length ?? 0) > 0).map(
-      (id) => ({ id: id as ClinicFilter, label: CLINIC_LABELS[id], icon: CLINIC_ICON[id] }),
+      (id) => ({ id: id as ClinicFilter, label: CLINIC_LABELS[id] }),
     ),
   ];
 
@@ -207,10 +137,9 @@ export function CaseLibraryScreen() {
     <div className="screen" style={{ background: 'var(--cream)' }}>
       <TopBar here={2} steps={['Polyclinic', 'GP', 'Case']} />
 
-      {/* Header row: back button + title + shuffle */}
       <div
         style={{
-          padding: '22px 28px 0',
+          padding: '24px 28px 0',
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'space-between',
@@ -221,53 +150,43 @@ export function CaseLibraryScreen() {
           <button
             type="button"
             className="btn-plush ghost"
-            style={{ fontSize: 14, padding: '10px 18px' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
             onClick={() => store.setScreen('gpRoom')}
             title="Back to the GP room"
           >
-            ← Back
+            <ArrowLeft size={17} /> Back
           </button>
           <div>
-            <h1 style={{ fontSize: 36, marginBottom: 4 }}>Pick a pet</h1>
-            <div style={{ fontWeight: 600, color: 'var(--ink-2)', fontSize: 14 }}>
-              Cases are grouped by veterinary service — pick a chip to focus.
+            <h1 style={{ fontSize: 36, marginBottom: 4 }}>Select a clinical case</h1>
+            <div style={{ fontWeight: 500, color: 'var(--ink-2)', fontSize: 14 }}>
+              Dog and cat consultations grouped by veterinary service.
             </div>
           </div>
         </div>
         <button
           type="button"
           className="btn-plush mint"
-          style={{ fontSize: 16, padding: '12px 22px', whiteSpace: 'nowrap' }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 9, whiteSpace: 'nowrap' }}
           onClick={shuffle}
         >
-          🔀 Shuffle ({totalVisible})
+          <Shuffle size={17} /> Shuffle ({totalVisible})
         </button>
       </div>
 
-      {/* Clinic filter chip row */}
-      <div
-        style={{
-          padding: '18px 28px 6px',
-          display: 'flex',
-          gap: 8,
-          flexWrap: 'wrap',
-          alignItems: 'center',
-        }}
-      >
+      <div style={{ padding: '18px 28px 6px', display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         {clinicChips.map((chip) => (
           <span
             key={chip.id}
-            className={`chip ${filter === chip.id ? 'butter' : ''}`}
+            className={`chip ${filter === chip.id ? 'mint' : ''}`}
             style={{ cursor: 'pointer' }}
             onClick={() => setFilter(chip.id)}
           >
-            {chip.icon ? `${chip.icon} ` : ''}
+            {chip.id === 'red-flag' ? <AlertTriangle size={13} /> : <Hospital size={13} />}
             {chip.label}
           </span>
         ))}
       </div>
 
-      {/* Grouped sections */}
       <div style={{ padding: '18px 28px 28px', display: 'flex', flexDirection: 'column', gap: 28 }}>
         {visibleGroups.map(([clinic, list]) => (
           <section key={clinic}>
@@ -278,37 +197,23 @@ export function CaseLibraryScreen() {
                 gap: 10,
                 marginBottom: 14,
                 paddingBottom: 8,
-                borderBottom: '3px dashed rgba(43,30,22,0.18)',
+                borderBottom: '1px solid #D5D8DA',
               }}
             >
-              <span style={{ fontSize: 22 }}>{CLINIC_ICON[clinic] ?? '🏥'}</span>
-              <h2 style={{ fontSize: 22, margin: 0, letterSpacing: '-0.01em' }}>
-                {CLINIC_LABELS[clinic]}
-              </h2>
+              <h2 style={{ fontSize: 22, margin: 0 }}>{CLINIC_LABELS[clinic]}</h2>
               <span className="chip" style={{ fontSize: 11, marginLeft: 6 }}>
                 {list.length} case{list.length === 1 ? '' : 's'}
               </span>
             </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: 18,
-              }}
-            >
-              {list.map((c, i) => (
-                <CaseCard key={c.id} c={c} delay={(i % 8) * 0.04} avatarStyle={tweaks.avatarStyle} />
-              ))}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 18 }}>
+              {list.map((c) => <CaseCard key={c.id} c={c} />)}
             </div>
           </section>
         ))}
 
         {visibleGroups.length === 0 && (
-          <div
-            className="plush"
-            style={{ padding: 24, textAlign: 'center', color: 'var(--ink-2)', fontWeight: 700 }}
-          >
-            No cases match this filter — try another chip.
+          <div className="plush" style={{ padding: 24, textAlign: 'center', color: 'var(--ink-2)', fontWeight: 700 }}>
+            No cases match this filter. Try another chip.
           </div>
         )}
       </div>

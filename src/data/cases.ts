@@ -4,7 +4,7 @@ import type { ClinicId } from '../game/clinic';
 import { CLINIC_LABELS } from '../game/clinic';
 import { POLYCLINIC_CASES, POLYCLINIC_DIAGNOSIS_LABELS } from './polyclinicPatients';
 
-/** Cute-cartoon face descriptor for the case library. Derived deterministically
+/** Visual descriptor for the case library. Derived deterministically
  *  from the underlying veterinary case so the same animal always renders the
  *  same face across screens. */
 export interface Case {
@@ -33,7 +33,7 @@ export interface Case {
 
 // ── deterministic palette pickers ─────────────────────────────────────
 //
-// We derive the cartoon face from `id + age + gender` so faces stay stable
+// We derive the visual attributes from `id + age + gender` so faces stay stable
 // across reloads (no random Math.random() at module init).
 
 const SKIN_TONES = [
@@ -140,7 +140,7 @@ const conditionSet = new Set(CASES.map((c) => c.cond));
 export const CONDITION_FILTERS: string[] = ['All', ...Array.from(conditionSet).slice(0, 8), 'Red-flag only'];
 
 /** Stable colour per condition for chips and ribbons — picks from the
- *  cozy-cartoon palette using a hash. */
+ *  clinical palette using a hash. */
 const PALETTE_VARS = ['var(--rose)', 'var(--peach)', 'var(--mint)', 'var(--sky)', 'var(--butter)'];
 function colourFor(label: string): string {
   return PALETTE_VARS[hash(label) % PALETTE_VARS.length];
@@ -158,7 +158,7 @@ export function getCase(id: string): Case {
 
 /** Look up the underlying medical PatientCase (anamnesis, vitals,
  *  diagnosis options, test results, etc.) — used by the encounter /
- *  brief / debrief screens that need more than the cartoon face. */
+ *  brief / debrief screens that need more than the library card shape. */
 export function getPatientCase(id: string): PatientCase | undefined {
   return BY_ID.get(id)?.p;
 }

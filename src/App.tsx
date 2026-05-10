@@ -15,6 +15,7 @@ import { HistoryScreen } from './components/HistoryScreen';
 import { AgenticRoundsScreen } from './components/AgenticRoundsScreen';
 import { AgentTopologyScreen } from './components/AgentTopologyScreen';
 import { BackgroundMusic } from './components/BackgroundMusic';
+import { UiSoundLayer } from './components/UiSoundLayer';
 
 export default function App() {
   const screen = useScreen();
@@ -56,6 +57,7 @@ export default function App() {
       {screen === 'agenticRounds' && <AgenticRoundsScreen />}
       {screen === 'agentTopology' && <AgentTopologyScreen />}
       <BackgroundMusic />
+      <UiSoundLayer />
     </div>
   );
 }

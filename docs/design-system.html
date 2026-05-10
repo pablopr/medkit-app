@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>medkit — Design System</title>
+  <title>vetkit — Clinical Premium Design System</title>
   <!--
-    Portable, single-file capture of the medkit simulator's visual language.
+    Portable, single-file capture of Vetkit's clinical premium visual language.
 
     Purpose: this file is the reference the demo video (video/remotion/)
     and any future landing page import instead of re-deriving tokens
@@ -18,37 +18,37 @@
   -->
   <style>
     :root {
-      /* MedKit Dayshift palette — mirrors src/styles/global.css :root */
-      --bg: #f0ebe1;
-      --bg-soft: #faf7f0;
-      --bg-accent: #ece6d8;
-      --panel: rgba(255, 250, 240, 0.78);
-      --panel-solid: #fbf7ec;
-      --panel-inner: #f5efe1;
-      --border: rgba(60, 40, 20, 0.15);
-      --border-strong: rgba(60, 40, 20, 0.28);
-      --trim: #d4a574;
-      --accent: #e07856;
-      --accent-soft: rgba(224, 120, 86, 0.14);
-      --text: #1a1a1a;
-      --text-dim: #5a5a5a;
-      --text-faint: #8b7a63;
-      --success: #4a7a3e;
-      --warn: #b8541f;
-      --danger: #b83c3c;
-      --critical: #b83c3c;
-      --urgent: #d4a574;
-      --stable: #4a7a3e;
+      /* Vetkit clinical palette — mirrors src/styles/global.css :root */
+      --bg: #F4F1EA;
+      --bg-soft: #FCFBF7;
+      --bg-accent: #E9E4DA;
+      --panel: rgba(252, 251, 247, 0.86);
+      --panel-solid: #FFFFFF;
+      --panel-inner: #F4F1EA;
+      --border: #D5D8DA;
+      --border-strong: #CDD2D5;
+      --trim: #D6A43B;
+      --accent: #E96F3C;
+      --accent-soft: rgba(233, 111, 60, 0.12);
+      --text: #202326;
+      --text-dim: #505861;
+      --text-faint: #79818A;
+      --success: #3F8F72;
+      --warn: #A77A20;
+      --danger: #A84F43;
+      --critical: #A84F43;
+      --urgent: #C65325;
+      --stable: #3F8F72;
 
-      --font-serif: 'Georgia', 'Times New Roman', serif;
+      --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       --font-mono: 'ui-monospace', 'SF Mono', Menlo, Consolas, monospace;
 
       --radius-sm: 6px;
-      --radius-md: 10px;
-      --radius-lg: 14px;
+      --radius-md: 8px;
+      --radius-lg: 8px;
 
       --shadow-inset: inset 0 0 0 1px rgba(60, 40, 20, 0.08);
-      --shadow-card: 0 1px 0 rgba(60, 40, 20, 0.04), 0 8px 20px rgba(60, 40, 20, 0.08);
+      --shadow-card: 0 10px 24px rgba(24, 30, 34, 0.10);
     }
 
     * { box-sizing: border-box; }
@@ -56,28 +56,21 @@
     body {
       margin: 0;
       padding: 32px;
-      background: linear-gradient(180deg, var(--bg-soft) 0%, var(--bg-accent) 100%);
+      background: linear-gradient(180deg, var(--bg-soft) 0%, var(--bg) 100%);
       color: var(--text);
-      font-family: var(--font-serif);
+      font-family: var(--font-sans);
       font-size: 14px;
       line-height: 1.55;
     }
 
-    body::after {
-      content: '';
-      position: fixed; inset: 0;
-      pointer-events: none;
-      background: radial-gradient(ellipse at center, transparent 60%, rgba(60,40,20,0.18) 100%);
-    }
-
-    h1, h2, h3 { font-family: var(--font-serif); margin: 0 0 8px; }
-    h1 { font-size: 22px; font-variant: small-caps; letter-spacing: 0.05em; }
-    h2 { font-size: 16px; font-variant: small-caps; letter-spacing: 0.08em; color: var(--text-dim); margin-top: 32px; }
-    h3 { font-size: 13px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.12em; }
+    h1, h2, h3 { font-family: var(--font-sans); margin: 0 0 8px; letter-spacing: 0; }
+    h1 { font-size: 28px; font-weight: 800; }
+    h2 { font-size: 17px; font-weight: 800; color: var(--text-dim); margin-top: 32px; }
+    h3 { font-size: 13px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; }
 
     .mono {
       font-family: var(--font-mono);
-      letter-spacing: 0.15em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
       font-size: 12px;
       color: var(--text-dim);
@@ -105,7 +98,7 @@
 
     /* ── Buttons ── */
     button, .btn {
-      font-family: var(--font-serif);
+      font-family: var(--font-sans);
       font-size: 13px;
       padding: 8px 14px;
       border-radius: var(--radius-sm);
@@ -125,9 +118,9 @@
       align-items: center;
       gap: 6px;
       padding: 3px 10px;
-      font-family: var(--font-mono);
+      font-family: var(--font-sans);
       font-size: 11px;
-      letter-spacing: 0.15em;
+      letter-spacing: 0;
       text-transform: uppercase;
       border-radius: 999px;
       border: 1px solid var(--border-strong);
@@ -165,52 +158,52 @@
 </head>
 <body>
   <div class="container">
-    <h1>medkit — Design System</h1>
-    <p class="mono">MedKit Dayshift · day 1 · ref for video + demo</p>
+    <h1>vetkit — Clinical Premium Design System</h1>
+    <p class="mono">Clinical premium · Vetkit veterinary simulator</p>
 
     <h2>Palette</h2>
     <div class="grid">
       <div class="panel">
         <div class="swatch" style="background: var(--bg-soft);"></div>
-        <div class="swatch-row"><span>Page bg-soft</span><span class="mono">#faf7f0</span></div>
+        <div class="swatch-row"><span>Page bg-soft</span><span class="mono">#FCFBF7</span></div>
       </div>
       <div class="panel">
         <div class="swatch" style="background: var(--panel-solid);"></div>
-        <div class="swatch-row"><span>Panel</span><span class="mono">#fbf7ec</span></div>
+        <div class="swatch-row"><span>Panel</span><span class="mono">#FFFFFF</span></div>
       </div>
       <div class="panel">
         <div class="swatch" style="background: var(--accent);"></div>
-        <div class="swatch-row"><span>Accent</span><span class="mono">#e07856</span></div>
+        <div class="swatch-row"><span>Barkibu accent</span><span class="mono">#E96F3C</span></div>
       </div>
       <div class="panel">
         <div class="swatch" style="background: var(--critical);"></div>
-        <div class="swatch-row"><span>Critical / Red</span><span class="mono">#b83c3c</span></div>
+        <div class="swatch-row"><span>Critical / Red</span><span class="mono">#A84F43</span></div>
       </div>
       <div class="panel">
         <div class="swatch" style="background: var(--urgent);"></div>
-        <div class="swatch-row"><span>Urgent / Yellow</span><span class="mono">#d4a574</span></div>
+        <div class="swatch-row"><span>Urgent / Orange</span><span class="mono">#C65325</span></div>
       </div>
       <div class="panel">
         <div class="swatch" style="background: var(--stable);"></div>
-        <div class="swatch-row"><span>Stable / Green</span><span class="mono">#4a7a3e</span></div>
+        <div class="swatch-row"><span>Stable / Green</span><span class="mono">#3F8F72</span></div>
       </div>
     </div>
 
     <h2>Typography</h2>
     <div class="panel">
       <table class="tokens">
-        <tr><th>Serif (body)</th><td>Georgia, Times New Roman, serif</td></tr>
+        <tr><th>Sans (body)</th><td>Inter, system UI, Segoe UI, sans-serif</td></tr>
         <tr><th>Mono (labels)</th><td>ui-monospace, SF Mono, Menlo, Consolas, monospace</td></tr>
-        <tr><th>Small caps label style</th><td><span class="mono">Ordered tests</span></td></tr>
-        <tr><th>Title</th><td style="font-size:22px;font-variant:small-caps;letter-spacing:0.05em;">Case debrief</td></tr>
+        <tr><th>Label style</th><td><span class="mono">Ordered tests</span></td></tr>
+        <tr><th>Title</th><td style="font-size:22px;font-weight:800;">Case debrief</td></tr>
       </table>
     </div>
 
     <h2>Buttons</h2>
     <div class="panel">
-      <button class="btn">Order test</button>
+      <button class="btn">Order diagnostic</button>
       <button class="btn btn--primary">Submit diagnosis</button>
-      <button class="btn btn--danger">End shift</button>
+      <button class="btn btn--danger">End consultation</button>
       <button class="btn btn--ghost">Skip</button>
     </div>
 

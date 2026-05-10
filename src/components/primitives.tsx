@@ -1,4 +1,5 @@
 import { Fragment, type CSSProperties, type ReactNode } from 'react';
+import { Stethoscope } from 'lucide-react';
 import { store } from '../game/store';
 
 // ─── PATIENT FACE ───────────────────────────────────────────
@@ -351,8 +352,9 @@ export function TopBar({
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '14px 22px',
-        borderBottom: '3px solid var(--line)',
-        background: 'white',
+        borderBottom: '1px solid #D7DBDE',
+        background: 'rgba(255,255,255,0.96)',
+        backdropFilter: 'blur(12px)',
       }}
     >
       <span
@@ -371,15 +373,15 @@ export function TopBar({
           title="Open profile"
           style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
         >
-          <span className="topbar-profile-name" style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink-2)' }}>Bedirhan</span>
+          <span className="topbar-profile-name" style={{ fontWeight: 650, fontSize: 13, color: 'var(--ink-2)' }}>Bedirhan</span>
           <div
             style={{
               width: 36,
               height: 36,
-              borderRadius: '50%',
+              borderRadius: 8,
               background: 'var(--mint)',
-              border: '3px solid var(--line)',
-              boxShadow: '0 2px 0 var(--line)',
+              border: '1px solid #BFC8C4',
+              boxShadow: 'var(--plush-tiny)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -409,38 +411,32 @@ export function Wordmark({ size = 36, dark = false }: WordmarkProps) {
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 8,
-        fontFamily: 'Nunito',
-        fontWeight: 900,
+        gap: 10,
+        fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
+        fontWeight: 800,
         fontSize: size,
         color: dark ? 'white' : 'var(--ink)',
-        letterSpacing: '-0.02em',
+        letterSpacing: 0,
       }}
     >
-      <span style={{ position: 'relative', display: 'inline-block' }}>
-        vet
-        <span
-          style={{
-            color: 'var(--peach-deep)',
-            textShadow: dark ? 'none' : '0 2px 0 var(--line)',
-            WebkitTextStroke: dark ? '0' : '2px var(--line)',
-            paintOrder: 'stroke fill',
-          }}
-        >
-          kit
-        </span>
-        <span
-          style={{
-            position: 'absolute',
-            right: -size * 0.42,
-            top: size * 0.05,
-            width: size * 0.34,
-            height: size * 0.34,
-            display: 'inline-block',
-          }}
-        >
-          <Doodle kind="cross" size={size * 0.34} color="#F47A92" />
-        </span>
+      <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'baseline' }}>
+        vet<span style={{ color: 'var(--peach-deep)' }}>kit</span>
+      </span>
+      <span
+        aria-hidden
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: size * 0.76,
+          height: size * 0.76,
+          borderRadius: 8,
+          background: dark ? 'rgba(255,255,255,0.14)' : 'rgba(233,111,60,0.12)',
+          color: dark ? 'white' : 'var(--peach-deep)',
+          border: dark ? '1px solid rgba(255,255,255,0.28)' : '1px solid rgba(233,111,60,0.24)',
+        }}
+      >
+        <Stethoscope size={size * 0.42} strokeWidth={2.2} />
       </span>
     </div>
   );
@@ -459,33 +455,8 @@ export interface DoodleScatterItem {
 }
 
 export function DoodleScatter({ items }: { items: DoodleScatterItem[] }) {
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        inset: 0,
-        pointerEvents: 'none',
-        overflow: 'hidden',
-      }}
-    >
-      {items.map((it, i) => (
-        <div
-          key={i}
-          className={it.anim ?? 'floaty'}
-          style={{
-            position: 'absolute',
-            left: it.x,
-            top: it.y,
-            transform: `rotate(${it.rot ?? 0}deg)`,
-            opacity: it.opacity ?? 1,
-            animationDelay: `${(i * 0.4) % 3}s`,
-          }}
-        >
-          <Doodle kind={it.kind} size={it.size ?? 40} color={it.color} />
-        </div>
-      ))}
-    </div>
-  );
+  void items;
+  return null;
 }
 
 // ─── SPEECH BUBBLE ───────────────────────────
@@ -495,20 +466,16 @@ export function SpeechBubble({ children }: { children: ReactNode }) {
       style={{
         position: 'relative',
         background: 'white',
-        border: '3.5px solid var(--line)',
+        border: '1px solid #D5D8DA',
         borderRadius: 'var(--r-md)',
         padding: '10px 14px',
-        fontWeight: 700,
+        fontWeight: 600,
         fontSize: 13,
         lineHeight: 1.35,
         boxShadow: 'var(--plush-sm)',
       }}
     >
       {children}
-      <svg style={{ position: 'absolute', left: -16, top: 30 }} width="20" height="22" viewBox="0 0 20 22">
-        <path d="M 20 4 L 2 12 L 20 18 Z" fill="white" stroke="var(--line)" strokeWidth="3.5" strokeLinejoin="round" />
-        <line x1="20" y1="4" x2="20" y2="18" stroke="white" strokeWidth="4" />
-      </svg>
     </div>
   );
 }

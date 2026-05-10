@@ -1,0 +1,24 @@
+# Release Notes
+
+## 2026-05-10 — Clinical premium redesign
+
+### Shipped
+
+- Set the new `clinical` palette as the default visual language.
+- Reworked splash, home, pathway, case library, brief, encounter, examine, wrap, and debrief surfaces away from the previous playful look.
+- Replaced decorative doodles, emoji controls, thick comic borders, and human cartoon placeholders with clinical cards, lucide icons, professional typography, and restrained animation.
+- Added a veterinary clinic hero image, local lobby ambience, UI click sound, and case completion sound.
+- Updated the 3D consultation room with cooler clinical lighting, neutral materials, less domestic decoration, and more believable dog/cat patient presentation.
+- Kept Barkibu subtle: the product story remains in the debrief cost view and small clinical context, not a full branded skin.
+
+### Verification
+
+- `npm run build`
+- `npm test`
+- `npm run verify`
+- Browser QA: splash, pathway, GP room, encounter 3D, examine overlay, wrap screen, mobile splash/pathway/GP room.
+
+### Notes
+
+- The local dev debrief can show the error fallback if `/agent/evaluate` is not running or lacks server secrets. Production smoke testing should validate the configured backend.
+- Vite still reports the existing large bundle warning; this release does not change code-splitting.
