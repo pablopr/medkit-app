@@ -4,7 +4,7 @@
 
 ### Shipped
 
-- Refined the 3D consultation scene with a more anatomical dog model, a clinical guest chair, owner clothing details, and a visible leash connection between dog and owner.
+- Refined the 3D consultation scene with a more anatomical dog model, an open standing consult point, owner clothing details, and a visible leash connection between dog and owner.
 - Added five complete veterinary cases: acute pancreatitis, feline asthma crisis, chronic kidney disease, cranial cruciate ligament injury, and corneal ulcer.
 - Expanded diagnostic tests, treatments, medications, Barkibu educational costs, guideline references, and data-integrity checks to support the new cases.
 - Moved the Barkibu cost card into the wrap/debrief flow so estimated bill, estimated reimbursement, and owner cost are visible even if the AI debrief is unavailable.

@@ -8,9 +8,9 @@ interface Props {
   bedPosition: [number, number, number];
   /** Bed rotation around Y (radians). Service-room beds are -PI/2, triage is 0. */
   bedRotationY?: number;
-  /** Mouth offset in the bed's LOCAL frame (x along the bed, y up, z across).
+  /** Mouth offset in the bed/anchor LOCAL frame (x along the anchor, y up, z across).
    *  Default: lying-on-bed head position (-0.88, 1.0, 0). Polyclinic passes
-   *  a seated-patient offset since the patient sits in a chair. */
+   *  a standing-owner offset at the consultation point. */
   headOffset?: [number, number, number];
   patient: ActivePatient;
   onClose: () => void;

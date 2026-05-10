@@ -196,8 +196,9 @@ class Store {
     this.attemptedCaseIds.add(id);
   }
 
-  /** Drop the patient into the polyclinic 3D scene — they walk in, sit on the
-   *  chair, and the voice agent boots once `voiceActive` flips on. */
+  /** Drop the patient into the polyclinic 3D scene — the owner and animal
+   *  walk to the consultation point, and the voice agent boots once
+   *  `voiceActive` flips on. */
   loadPolyclinicPatient = (id: string) => {
     const c = getCase(id);
     this.set({
@@ -208,7 +209,7 @@ class Store {
 
   /** Clear the patient — triggers the walk-out animation in the 3D scene.
    *  Snapshots the encounter into `lastEncounter` so DebriefScreen can grade
-   *  it after the patient has left the chair.
+   *  it after the owner and animal have left the room.
    *
    *  Always snapshots the current chart, even if the trainee ended without
    *  ordering tests or prescribing. The debrief and Barkibu estimate still
@@ -242,7 +243,7 @@ class Store {
   };
 
   /** "Accept the next patient" — drop straight into the 3D encounter with
-   *  the patient seated and the voice agent already connecting.
+   *  the owner and animal entering while the voice agent starts connecting.
    *
    *  When called without an explicit id, picks the next unattempted case
    *  from the active polyclinic so the doctor can hammer through e.g.
@@ -275,7 +276,7 @@ class Store {
   };
 
   // ── examine flow ───────────────────────────────
-  /** Mutate the seated polyclinic patient. No-op when the bed is empty.
+  /** Mutate the active polyclinic patient. No-op when the consult slot is empty.
    *  The mutator builds the next snapshot from the current one. */
   private updatePolyclinicPatient = (mut: (p: ActivePatient) => ActivePatient) => {
     const cur = this.state.polyclinic.patient;
