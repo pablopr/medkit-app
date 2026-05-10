@@ -1,7 +1,9 @@
 import { ArrowLeft, ArrowRight, Check, ClipboardCheck, MessageSquareText, ShieldCheck } from 'lucide-react';
 import { TopBar } from './primitives';
 import { getCase } from '../data/cases';
-import { store, useStore } from '../game/store';
+import { estimateBarkibuSupport } from '../data/barkibuEstimate';
+import { BarkibuEstimateCard } from './BarkibuEstimateCard';
+import { store, useGameState, useStore } from '../game/store';
 import type { EndConfirmChecks } from '../game/types';
 
 interface Item {
@@ -18,9 +20,12 @@ const ITEMS: Item[] = [
 ];
 
 export function EndConfirmScreen() {
+  const state = useGameState();
   const checked = useStore((s) => s.endConfirm);
   const caseId = useStore((s) => s.selectedCaseId);
   const c = getCase(caseId);
+  const patient = state.polyclinic.patient ?? state.lastEncounter;
+  const barkibuEstimate = patient ? estimateBarkibuSupport(patient) : null;
 
   return (
     <div className="screen" style={{ background: 'var(--cream)', position: 'relative' }}>
@@ -52,6 +57,12 @@ export function EndConfirmScreen() {
           <div style={{ fontSize: 15, color: 'var(--ink-2)', fontWeight: 500, marginBottom: 22, maxWidth: 560 }}>
             Before debriefing {c.name}, mark only what you actually covered with the owner.
           </div>
+
+          {barkibuEstimate && (
+            <div style={{ marginBottom: 24 }}>
+              <BarkibuEstimateCard estimate={barkibuEstimate} compact />
+            </div>
+          )}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
             {ITEMS.map((it) => {
