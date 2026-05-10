@@ -11,8 +11,56 @@ export function parentGenderForId(caseId: string): 'M' | 'F' {
   return (h >>> 0) % 2 === 0 ? 'F' : 'M';
 }
 
+const FEMALE_OWNER_NAMES = new Set([
+  'ana',
+  'clara',
+  'claudia',
+  'elena',
+  'ines',
+  'irene',
+  'laura',
+  'lucia',
+  'marta',
+  'maria',
+  'noa',
+  'sara',
+  'sofia',
+]);
+
+const MALE_OWNER_NAMES = new Set([
+  'alex',
+  'bedirhan',
+  'carlos',
+  'david',
+  'diego',
+  'javier',
+  'jorge',
+  'luis',
+  'miguel',
+  'pablo',
+  'sergio',
+]);
+
+function normalizeOwnerFirstName(ownerName?: string): string {
+  return (ownerName ?? '')
+    .trim()
+    .split(/\s+/)[0]
+    ?.normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z]/g, '')
+    .toLowerCase() ?? '';
+}
+
+export function inferPetOwnerGender(ownerName?: string, caseId?: string): 'M' | 'F' {
+  const firstName = normalizeOwnerFirstName(ownerName);
+  if (FEMALE_OWNER_NAMES.has(firstName)) return 'F';
+  if (MALE_OWNER_NAMES.has(firstName)) return 'M';
+  if (firstName.endsWith('a') && firstName !== 'luca') return 'F';
+  return caseId ? parentGenderForId(caseId) : 'F';
+}
+
 export function parentGenderFor(c: PatientCase): 'M' | 'F' {
-  return parentGenderForId(c.id);
+  return inferPetOwnerGender(c.ownerName, c.id);
 }
 
 export function isPediatric(_c: PatientCase): boolean {

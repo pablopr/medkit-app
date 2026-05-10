@@ -1,5 +1,5 @@
 import { Conversation, type ConversationListeners } from './conversation';
-import { buildPersona, buildInitialLine, isPediatric, parentGenderFor } from './patientPersona';
+import { buildPersona, buildInitialLine, parentGenderFor } from './patientPersona';
 import type { PatientCase } from '../game/types';
 
 let sharedCtx: AudioContext | null = null;
@@ -53,11 +53,8 @@ export function getOrCreatePatientConversation(
   // The polyclinic uses sentinel bedIndex -10; everything else is ER.
   const setting: 'polyclinic' | 'er' = bedIndex === -10 ? 'polyclinic' : 'er';
   const ctx = ensureAudioContext();
-  // Speaker gender mirrors the rule in voiceForPatient (now retired):
-  // pediatric → parent's gender, adult → patient's gender.
-  const speakerGender: 'M' | 'F' = isPediatric(patientCase)
-    ? parentGenderFor(patientCase)
-    : patientCase.gender;
+  // Veterinary cases speak through the pet owner, never through the animal.
+  const speakerGender: 'M' | 'F' = parentGenderFor(patientCase);
   const conv = new Conversation(ctx, listeners, {
     systemPrompt: buildPersona(patientCase, setting),
     initialMessage: buildInitialLine(patientCase),
