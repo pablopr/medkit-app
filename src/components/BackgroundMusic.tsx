@@ -33,7 +33,7 @@ export function BackgroundMusic() {
   const shouldPlay = !userMuted && !inSession;
 
   useEffect(() => {
-    const a = new Audio('/assets/audio/vetkit-lobby-ambient.wav');
+    const a = new Audio('/assets/audio/vetkit-lobby-music.wav');
     a.loop = true;
     a.volume = VOLUME;
     a.preload = 'auto';
