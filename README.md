@@ -10,13 +10,13 @@ Browser-based small-animal veterinary training simulator. You play the vet: dogs
 
 Vetkit is a voice-first AI consultation simulator for veterinary students, interns, and small-animal clinicians. You speak with the pet parent in real time, work through dog and cat cases, order veterinary diagnostics, prescribe, safety-net, and get a structured debrief. The grader cites a compact veterinary guideline registry (AAHA, WSAVA, ISFM, ACVIM) so it cannot fabricate sources.
 
-The MVP also includes a Barkibu-style cost view at debrief: the actions you took become an educational bill, an 80% reimbursement estimate, and an approximate remaining owner cost.
+The MVP also includes a Barkibu-style cost view in wrap-up and debrief: the actions you took become an educational bill, an 80% reimbursement estimate, and an approximate remaining owner cost.
 
 Originally built in three days for a clinical-simulation hackathon by a medical-doctor-turned-software-engineer ([@bedriyan](https://github.com/bedriyan)).
 
 ## Barkibu roadmap
 
-- **MVP: bill + reimbursement estimate** — implemented in the debrief from recorded tests, treatments, and prescriptions. It is educational only, not a coverage promise.
+- **MVP: bill + reimbursement estimate** — implemented in wrap-up and debrief from recorded tests, treatments, and prescriptions. It is educational only, not a coverage promise.
 - **Post-MVP: Bai responsible copilot** — a side panel that nudges safe next steps during the consultation without giving final diagnoses or replacing the vet.
 - **Post-MVP: continuous health checklist** — after the case, follow-up items for vaccines, parasite prevention, weight, revisits, and warning signs.
 
@@ -34,7 +34,7 @@ Originally built in three days for a clinical-simulation hackathon by a medical-
 | State | Single `Store` class with `useSyncExternalStore` (no Redux/Zustand) |
 
 Current MVP flow:
-- **Small-animal clinic** — one dog or cat at a time, owner conversation, instant outpatient diagnostics, prescriptions, debrief, and Barkibu-style cost estimate.
+- **Small-animal clinic** — 11 dog and cat cases, one patient at a time, owner conversation, instant outpatient diagnostics, prescriptions, debrief, and Barkibu-style cost estimate.
 
 ## Visual language
 
