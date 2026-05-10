@@ -1,5 +1,13 @@
 # Release Notes
 
+## 2026-05-10 — Audio playback fix
+
+### Fixed
+
+- Raised generated audio asset gain and playback volumes so lobby ambience, UI clicks, and debrief completion sounds are audible in normal browser playback.
+- Kept short UI sound elements alive until playback ends, avoiding clipped or dropped click sounds.
+- Added regression tests for WAV amplitude and playback volume constants.
+
 ## 2026-05-10 — Clinical premium redesign
 
 ### Shipped

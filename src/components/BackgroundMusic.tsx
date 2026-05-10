@@ -3,7 +3,7 @@ import { Volume2, VolumeX } from 'lucide-react';
 import { useScreen } from '../game/store';
 
 const MUTED_KEY = 'medkit:music-muted';
-const VOLUME = 0.10;
+const VOLUME = 0.18;
 
 function readMuted(): boolean {
   try {

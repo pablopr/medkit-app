@@ -1,13 +1,18 @@
 import { useEffect } from 'react';
 import { useScreen } from '../game/store';
 
-const CLICK_VOLUME = 0.08;
-const COMPLETE_VOLUME = 0.12;
+const CLICK_VOLUME = 0.28;
+const COMPLETE_VOLUME = 0.35;
+const activeSounds = new Set<HTMLAudioElement>();
 
 function play(path: string, volume: number) {
   const a = new Audio(path);
   a.volume = volume;
-  a.play().catch(() => undefined);
+  activeSounds.add(a);
+  const release = () => activeSounds.delete(a);
+  a.addEventListener('ended', release, { once: true });
+  a.addEventListener('error', release, { once: true });
+  a.play().catch(release);
 }
 
 export function UiSoundLayer() {
