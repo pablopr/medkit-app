@@ -82,6 +82,17 @@ test('Barkibu estimate calculates multiple line items and 80 percent reimburseme
   );
 });
 
+test('Barkibu estimate uses completed tests when ordered IDs are missing from an older snapshot', () => {
+  const p = encounter();
+  p.orderedTestIds = [];
+  p.completedTestIds = ['vet-cbc', 'vet-chem'];
+
+  const estimate = estimateBarkibuSupport(p);
+  assert.equal(estimate.lineItems.some((x) => x.id === 'test:vet-cbc'), true);
+  assert.equal(estimate.lineItems.some((x) => x.id === 'test:vet-chem'), true);
+  assert.equal(estimate.subtotal, 175);
+});
+
 test('Barkibu estimate uses animal weight for mg/kg medication costs', () => {
   const light = encounter(5.8);
   light.prescriptions = [

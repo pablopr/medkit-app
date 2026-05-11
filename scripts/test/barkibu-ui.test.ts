@@ -9,10 +9,10 @@ test('Barkibu estimate appears before and during debrief', () => {
 
   assert.match(endConfirm, /BarkibuEstimateCard/);
   assert.match(endConfirm, /estimateBarkibuSupport/);
-  assert.match(endConfirm, /state\.polyclinic\.patient \?\? state\.lastEncounter/);
+  assert.match(endConfirm, /state\.lastEncounter \?\? state\.polyclinic\.patient/);
   assert.match(debrief, /BarkibuEstimateCard/);
   assert.match(debrief, /barkibuEstimate && !evaluation/);
-  assert.match(debrief, /state\.polyclinic\.patient \?\? state\.lastEncounter/);
+  assert.match(debrief, /state\.lastEncounter \?\? state\.polyclinic\.patient/);
 });
 
 test('empty debrief state names why no Barkibu bill is available', () => {
@@ -27,4 +27,14 @@ test('closed encounters keep a chart for debrief and Barkibu costs', () => {
 
   assert.match(store, /lastEncounter: snapshot \?\? this\.state\.lastEncounter/);
   assert.doesNotMatch(store, /hasEncounterActivity\(snapshot\)/);
+});
+
+test('treatments can be recorded and included in Barkibu costs', () => {
+  const store = readFileSync(join(process.cwd(), 'src', 'game', 'store.ts'), 'utf8');
+  const overlay = readFileSync(join(process.cwd(), 'src', 'components', 'ExamineOverlay.tsx'), 'utf8');
+
+  assert.match(store, /givePolyclinicTreatment/);
+  assert.match(overlay, /TreatmentsTab/);
+  assert.match(overlay, /store\.givePolyclinicTreatment/);
+  assert.match(overlay, /givenTreatmentIds/);
 });

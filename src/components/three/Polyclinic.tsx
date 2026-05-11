@@ -9,7 +9,7 @@ import { useGameState, POLYCLINIC_BED_INDEX } from '../../game/store';
 import { CLINIC_LABELS } from '../../game/clinic';
 import { FloatingVoicePanel } from './FloatingVoicePanel';
 import { StylizedCharacter } from './StylizedCharacter';
-import { parentGenderForId } from '../../voice/patientPersona';
+import { inferPetOwnerGender } from '../../voice/patientPersona';
 
 // ───────── World layout — a doctor's private office (muayenehane) ─────────
 //
@@ -2039,14 +2039,29 @@ function petPalette(seed: string, species: 'dog' | 'cat') {
 function DogPatientModel({
   color,
   severity,
+  breed,
+  weightKg,
 }: {
   color: string;
   severity?: 'critical' | 'urgent' | 'stable';
+  breed?: string;
+  weightKg?: number;
 }) {
   const group = useRef<Group>(null);
   const tail = useRef<Group>(null);
   const urgent = severity === 'urgent';
   const critical = severity === 'critical';
+  const breedName = (breed ?? '').toLowerCase();
+  const compactHead = /bulldog|boxer|pug|french/.test(breedName);
+  const longEars = /beagle|hound|labrador|retriever|setter|spaniel/.test(breedName);
+  const uprightEars = !longEars && /akita|collie|husky|podenco|shepherd|shiba|terrier/.test(breedName);
+  const stockyBuild = (weightKg ?? 0) > 27 || /bulldog|labrador|retriever|rottweiler/.test(breedName);
+  const legLength = critical ? 0.24 : stockyBuild ? 0.39 : 0.46;
+  const muzzleLength = compactHead ? 0.24 : 0.34;
+  const muzzleZ = compactHead ? -0.8 : -0.86;
+  const noseZ = compactHead ? -0.95 : -1.03;
+  const chestMark = '#f1dec0';
+  const darkFur = '#3a2720';
   const breathingRate = critical ? 2.2 : urgent ? 1.8 : 1.2;
   useFrame((state) => {
     const t = state.clock.elapsedTime;
@@ -2062,7 +2077,7 @@ function DogPatientModel({
   return (
     <group ref={group}>
       {/* rib cage and abdomen overlap to avoid the single-sausage silhouette */}
-      <mesh position={[0, bodyY + 0.03, -0.16]} scale={[0.48, critical ? 0.17 : 0.25, 0.58]} castShadow receiveShadow>
+      <mesh position={[0, bodyY + 0.03, -0.16]} scale={[stockyBuild ? 0.46 : 0.42, critical ? 0.17 : 0.25, stockyBuild ? 0.64 : 0.58]} castShadow receiveShadow>
         <sphereGeometry args={[1, 36, 22]} />
         <meshStandardMaterial color={color} roughness={0.86} />
       </mesh>
@@ -2070,39 +2085,73 @@ function DogPatientModel({
         <sphereGeometry args={[1, 30, 18]} />
         <meshStandardMaterial color={color} roughness={0.88} />
       </mesh>
+      {[-0.23, 0.23].map((x) => (
+        <mesh key={`dog-shoulder-${x}`} position={[x, bodyY + 0.02, -0.34]} scale={[0.16, critical ? 0.09 : 0.16, 0.18]} castShadow>
+          <sphereGeometry args={[1, 18, 12]} />
+          <meshStandardMaterial color={color} roughness={0.86} />
+        </mesh>
+      ))}
+      {[-0.23, 0.23].map((x) => (
+        <mesh key={`dog-hip-${x}`} position={[x, bodyY - 0.01, 0.4]} scale={[0.17, critical ? 0.08 : 0.14, 0.18]} castShadow>
+          <sphereGeometry args={[1, 18, 12]} />
+          <meshStandardMaterial color={color} roughness={0.88} />
+        </mesh>
+      ))}
       <mesh position={[0, bodyY + 0.06, -0.35]} scale={[0.22, critical ? 0.08 : 0.12, 0.22]} castShadow>
         <sphereGeometry args={[1, 20, 12]} />
-        <meshStandardMaterial color="#f1dec0" roughness={0.9} />
+        <meshStandardMaterial color={chestMark} roughness={0.9} />
+      </mesh>
+      <mesh position={[0, bodyY + 0.12, -0.47]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+        <cylinderGeometry args={[0.14, 0.18, 0.32, 18]} />
+        <meshStandardMaterial color={color} roughness={0.86} />
       </mesh>
 
       {/* head, muzzle, jaw */}
-      <mesh position={[0, headY, -0.62]} scale={[0.26, 0.22, 0.24]} castShadow>
+      <mesh position={[0, headY, -0.62]} scale={[compactHead ? 0.29 : 0.26, 0.22, compactHead ? 0.21 : 0.24]} castShadow>
         <sphereGeometry args={[1, 30, 20]} />
         <meshStandardMaterial color={color} roughness={0.88} />
       </mesh>
-      <mesh position={[0, headY - 0.05, -0.86]} rotation={[Math.PI / 2, 0, 0]} scale={[1.08, 0.82, 1]} castShadow>
-        <cylinderGeometry args={[0.12, 0.075, 0.32, 18]} />
+      <mesh position={[0, headY - 0.05, muzzleZ]} rotation={[Math.PI / 2, 0, 0]} scale={[compactHead ? 1.2 : 1.08, 0.82, 1]} castShadow>
+        <cylinderGeometry args={[compactHead ? 0.13 : 0.12, 0.075, muzzleLength, 18]} />
         <meshStandardMaterial color="#7d5a42" roughness={0.9} />
       </mesh>
-      <mesh position={[0, headY - 0.11, -0.88]} rotation={[Math.PI / 2, 0, 0]} scale={[1.0, 0.45, 1]} castShadow>
-        <cylinderGeometry args={[0.105, 0.08, 0.24, 16]} />
-        <meshStandardMaterial color="#f0d8bd" roughness={0.92} />
+      <mesh position={[0, headY - 0.11, muzzleZ - 0.02]} rotation={[Math.PI / 2, 0, 0]} scale={[1.0, 0.45, 1]} castShadow>
+        <cylinderGeometry args={[0.105, 0.08, compactHead ? 0.18 : 0.24, 16]} />
+        <meshStandardMaterial color={chestMark} roughness={0.92} />
       </mesh>
-      {[-0.14, 0.14].map((x, i) => (
-        <group key={`dog-ear-${i}`} position={[x, critical ? 0.55 : 0.76, -0.56]} rotation={[0.45, x < 0 ? -0.12 : 0.12, x < 0 ? 0.9 : -0.9]}>
-          <mesh castShadow scale={[0.75, 1.15, 0.42]}>
-            <sphereGeometry args={[0.1, 18, 12]} />
-            <meshStandardMaterial color="#4b3327" roughness={0.92} />
-          </mesh>
-          <mesh position={[0, -0.06, 0.01]} castShadow scale={[0.55, 0.9, 0.28]}>
-            <sphereGeometry args={[0.1, 16, 10]} />
-            <meshStandardMaterial color="#3a2720" roughness={0.94} />
-          </mesh>
-        </group>
-      ))}
+      {[-0.14, 0.14].map((x, i) => {
+        const side = x < 0 ? -1 : 1;
+        return uprightEars ? (
+          <group key={`dog-ear-${i}`} position={[x, critical ? 0.56 : 0.78, -0.58]} rotation={[0.15, side * -0.1, side * -0.36]}>
+            <mesh castShadow>
+              <coneGeometry args={[0.075, 0.24, 4]} />
+              <meshStandardMaterial color={darkFur} roughness={0.92} />
+            </mesh>
+            <mesh position={[side * 0.008, -0.03, 0.012]} scale={[0.55, 0.72, 0.38]}>
+              <coneGeometry args={[0.055, 0.16, 4]} />
+              <meshStandardMaterial color="#806454" roughness={0.94} />
+            </mesh>
+          </group>
+        ) : (
+          <group key={`dog-ear-${i}`} position={[x, critical ? 0.55 : 0.76, -0.56]} rotation={[0.45, side * -0.12, side * 0.9]}>
+            <mesh castShadow scale={[longEars ? 0.72 : 0.75, longEars ? 1.45 : 1.15, 0.42]}>
+              <sphereGeometry args={[0.1, 18, 12]} />
+              <meshStandardMaterial color="#4b3327" roughness={0.92} />
+            </mesh>
+            <mesh position={[0, longEars ? -0.09 : -0.06, 0.01]} castShadow scale={[0.55, longEars ? 1.15 : 0.9, 0.28]}>
+              <sphereGeometry args={[0.1, 16, 10]} />
+              <meshStandardMaterial color={darkFur} roughness={0.94} />
+            </mesh>
+          </group>
+        );
+      })}
       <mesh position={[0, collarY, -0.47]} rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[0.19, 0.018, 8, 34]} />
         <meshStandardMaterial color={PALETTE.barkibuMint} roughness={0.7} />
+      </mesh>
+      <mesh position={[0.12, collarY - 0.11, -0.49]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+        <cylinderGeometry args={[0.028, 0.028, 0.008, 14]} />
+        <meshStandardMaterial color={PALETTE.brass} metalness={0.55} roughness={0.35} />
       </mesh>
       {[-0.1, 0.1].map((x, i) => (
         <mesh key={`dog-eye-${i}`} position={[x, critical ? 0.46 : 0.66, -0.79]}>
@@ -2116,38 +2165,56 @@ function DogPatientModel({
           <meshStandardMaterial color="#2b1d17" roughness={0.9} />
         </mesh>
       ))}
-      <mesh position={[0, critical ? 0.36 : 0.52, -1.03]} scale={[1.22, 0.8, 0.82]}>
+      <mesh position={[0, critical ? 0.36 : 0.52, noseZ]} scale={[1.22, 0.8, 0.82]}>
         <sphereGeometry args={[0.028, 12, 10]} />
         <meshStandardMaterial color="#17110d" />
       </mesh>
+      {[-0.045, 0.045].map((x) => (
+        <mesh key={`dog-muzzle-dot-${x}`} position={[x, critical ? 0.35 : 0.51, noseZ + 0.045]}>
+          <sphereGeometry args={[0.008, 6, 6]} />
+          <meshStandardMaterial color="#2b1d17" roughness={0.85} />
+        </mesh>
+      ))}
       {urgent && (
-        <mesh position={[0, 0.48, -0.99]} rotation={[0.25, 0, 0]} castShadow>
+        <mesh position={[0, 0.48, noseZ + 0.04]} rotation={[0.25, 0, 0]} castShadow>
           <boxGeometry args={[0.07, 0.018, 0.05]} />
           <meshStandardMaterial color="#c45b55" roughness={0.75} />
         </mesh>
       )}
 
       {/* legs with separate paws and shoulder/hip mass */}
-      {[-0.27, 0.27].map((x) => (
+      {[-0.22, 0.22].map((x) => (
         <group key={`front-leg-${x}`} position={[x, 0, -0.32]}>
           <mesh position={[0, critical ? 0.17 : 0.27, 0]} rotation={[0.08, 0, x < 0 ? -0.04 : 0.04]} castShadow>
-            <cylinderGeometry args={[0.06, 0.052, critical ? 0.24 : 0.45, 12]} />
+            <cylinderGeometry args={[0.06, 0.052, legLength, 12]} />
             <meshStandardMaterial color={color} roughness={0.82} />
           </mesh>
           <RoundedBox args={[0.15, 0.055, 0.22]} radius={0.025} smoothness={2} position={[0, 0.035, -0.05]} castShadow>
             <meshStandardMaterial color="#5f3f2e" roughness={0.88} />
           </RoundedBox>
+          {[-0.045, 0, 0.045].map((toe) => (
+            <mesh key={`front-toe-${x}-${toe}`} position={[toe, 0.072, -0.155]}>
+              <sphereGeometry args={[0.012, 6, 6]} />
+              <meshStandardMaterial color="#1b1512" roughness={0.8} />
+            </mesh>
+          ))}
         </group>
       ))}
-      {[-0.29, 0.29].map((x) => (
+      {[-0.24, 0.24].map((x) => (
         <group key={`rear-leg-${x}`} position={[x, 0, 0.38]}>
           <mesh position={[0, critical ? 0.15 : 0.24, 0.02]} rotation={[-0.2, 0, x < 0 ? 0.04 : -0.04]} castShadow>
-            <cylinderGeometry args={[0.072, 0.058, critical ? 0.24 : 0.42, 12]} />
+            <cylinderGeometry args={[0.072, 0.058, critical ? 0.24 : legLength * 0.92, 12]} />
             <meshStandardMaterial color={color} roughness={0.82} />
           </mesh>
           <RoundedBox args={[0.17, 0.055, 0.24]} radius={0.025} smoothness={2} position={[0, 0.035, 0.05]} castShadow>
             <meshStandardMaterial color="#5f3f2e" roughness={0.88} />
           </RoundedBox>
+          {[-0.05, 0, 0.05].map((toe) => (
+            <mesh key={`rear-toe-${x}-${toe}`} position={[toe, 0.072, -0.055]}>
+              <sphereGeometry args={[0.012, 6, 6]} />
+              <meshStandardMaterial color="#1b1512" roughness={0.8} />
+            </mesh>
+          ))}
         </group>
       ))}
       <group ref={tail} position={[0, critical ? 0.34 : 0.52, 0.65]} rotation={[0.2, 0, 0.55]}>
@@ -2285,10 +2352,19 @@ function ConsultationPet({
   const isCat = patient.species === 'cat';
   const weightScale = isCat
     ? THREE.MathUtils.clamp(patient.weightKg / 5.5, 0.82, 1.05)
-    : THREE.MathUtils.clamp(patient.weightKg / 22, 0.72, 1.18);
+    : THREE.MathUtils.clamp(patient.weightKg / 26, 0.72, 1.12);
   return (
     <group position={position} rotation={[0, rotationY, 0]} scale={weightScale}>
-      {isCat ? <CatPatientModel color={color} severity={patient.severity} /> : <DogPatientModel color={color} severity={patient.severity} />}
+      {isCat ? (
+        <CatPatientModel color={color} severity={patient.severity} />
+      ) : (
+        <DogPatientModel
+          color={color}
+          severity={patient.severity}
+          breed={patient.breed}
+          weightKg={patient.weightKg}
+        />
+      )}
       <CaseProp patient={patient} />
       <Text position={[0, 0.02, 0.82]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.07} color="#6b4f3f" anchorX="center" anchorY="middle" fontWeight={900}>
         {patient.name}
@@ -3201,7 +3277,7 @@ function WalkingPatient({
   const displayPatient = patient ?? companionRef.current;
   const ownerCaseId = caseId ?? displayPatient?.id;
   const patientAge = age ?? (displayPatient ? 38 : 35);
-  const patientGender = gender ?? (displayPatient ? parentGenderForId(displayPatient.id) : 'M');
+  const patientGender = gender ?? inferPetOwnerGender(displayPatient?.ownerName, displayPatient?.id);
   const ownerPose: 'walking' | 'standing' =
     phase === 'arrived' ? 'standing' : 'walking';
   const expression = deriveExpression(
@@ -3492,7 +3568,7 @@ export function Polyclinic({
         patientKey={patientKey}
         patient={monitorPatient}
         age={patient ? 38 : undefined}
-        gender={patient ? parentGenderForId(patient.case.id) : undefined}
+        gender={patient ? inferPetOwnerGender(patient.case.ownerName, patient.case.id) : undefined}
         caseId={patient?.case.id}
         severity={patient?.case.severity}
         complaint={patient?.case.chiefComplaint}

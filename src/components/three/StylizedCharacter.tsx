@@ -14,6 +14,7 @@ export type CharacterHairStyle =
   | 'receding'
   | 'beard'
   | 'long'
+  | 'bob'
   | 'bun'
   | 'ponytail';
 
@@ -58,7 +59,7 @@ function palette(age: number, gender: 'M' | 'F', seed: string | undefined, docto
   const shirtTones = doctor
     ? ['#ffffff']
     : gender === 'F'
-      ? ['#b8486a', '#6a8acc', '#d4954a', '#4a8a6a', '#8a5a9a']
+      ? ['#465f68', '#6b5a74', '#8a5c50', '#4e7165', '#5d6470']
       : ['#4a6a8a', '#8a5a3a', '#3a4a5a', '#6a4a3a', '#5a7a4a'];
   const pantsTones = doctor ? ['#3a4a5a'] : ['#2a2a3a', '#4a3a2a', '#5a4030', '#3a3a40'];
   return {
@@ -79,14 +80,14 @@ function pickHairStyle(
   if (override) return override;
   if (age > 65) {
     const opts: CharacterHairStyle[] =
-      gender === 'M' ? ['receding', 'bald', 'bald', 'crop'] : ['bun', 'receding', 'long'];
+      gender === 'M' ? ['receding', 'bald', 'bald', 'crop'] : ['bun', 'bob', 'long'];
     return opts[(h >> 9) % opts.length];
   }
   if (gender === 'M') {
-    const opts: CharacterHairStyle[] = ['crop', 'crop', 'beard', 'beard', 'bald', 'long'];
+    const opts: CharacterHairStyle[] = ['crop', 'crop', 'beard', 'beard', 'bald', 'receding'];
     return opts[(h >> 9) % opts.length];
   }
-  const opts: CharacterHairStyle[] = ['long', 'long', 'bun', 'ponytail'];
+  const opts: CharacterHairStyle[] = ['long', 'long', 'bob', 'bun', 'ponytail'];
   return opts[(h >> 9) % opts.length];
 }
 
@@ -170,6 +171,9 @@ export function StylizedCharacter({
   const torsoWidthMul = body === 'thin' ? 0.85 : body === 'heavy' ? 1.2 : 1.0;
   const hipWidthMul = body === 'thin' ? 0.9 : body === 'heavy' ? 1.15 : 1.0;
   const torsoDepthMul = body === 'heavy' ? 1.12 : 1.0;
+  const torsoWidth = (female ? 0.32 : 0.38) * torsoWidthMul;
+  const hipWidth = 0.34 * hipWidthMul * (female ? 1.08 : 1);
+  const shoulderX = female ? 0.17 : 0.2;
 
   // Breathing + optional head tracking.
   useFrame((state) => {
@@ -239,6 +243,7 @@ export function StylizedCharacter({
     expression === 'pain' ? 0.014 : 0.006;
 
   const browColor = col.hair === '#ffffff' ? '#c9c4ba' : col.hair;
+  const mouthColor = female ? '#744044' : '#8a3a32';
   const slingRightArm = acc.includes('sling');
 
   // When the character is scaled down (children, elders) the entire body —
@@ -260,7 +265,7 @@ export function StylizedCharacter({
       <group position={[0, torsoBaseY, 0]}>
         {/* hips */}
         <RoundedBox
-          args={[0.34 * hipWidthMul, 0.14, 0.24]}
+          args={[hipWidth, 0.14, 0.24]}
           radius={0.05}
           smoothness={3}
           castShadow
@@ -271,7 +276,7 @@ export function StylizedCharacter({
         {/* torso — waist-taper for females, width & depth from body type */}
         <RoundedBox
           args={[
-            (female ? 0.3 : 0.38) * torsoWidthMul,
+            torsoWidth,
             0.48,
             0.22 * torsoDepthMul,
           ]}
@@ -287,26 +292,53 @@ export function StylizedCharacter({
           <>
             {/* layered clothing details keep the pet parent from reading as
                 a single toy block, while staying in the low-poly language. */}
-            <mesh position={[0, 0.58, 0.118]} rotation={[0, 0, 0.75]}>
-              <boxGeometry args={[0.13, 0.028, 0.012]} />
-              <meshStandardMaterial color="#f0e8dc" roughness={0.84} />
-            </mesh>
-            <mesh position={[0, 0.58, 0.119]} rotation={[0, 0, -0.75]}>
-              <boxGeometry args={[0.13, 0.028, 0.012]} />
-              <meshStandardMaterial color="#f0e8dc" roughness={0.84} />
-            </mesh>
-            <mesh position={[0, 0.35, 0.122]}>
-              <boxGeometry args={[0.018, 0.32, 0.012]} />
-              <meshStandardMaterial color="#141616" roughness={0.82} />
-            </mesh>
-            {[0.28, 0.38, 0.48].map((y) => (
-              <mesh key={`shirt-button-${y}`} position={[0, y, 0.132]}>
-                <sphereGeometry args={[0.012, 8, 8]} />
-                <meshStandardMaterial color="#f2eee6" roughness={0.65} />
-              </mesh>
-            ))}
+            {female ? (
+              <>
+                <mesh position={[-0.058, 0.39, 0.127]} rotation={[0, 0, -0.05]}>
+                  <boxGeometry args={[0.075, 0.36, 0.014]} />
+                  <meshStandardMaterial color="#2a2d30" roughness={0.82} />
+                </mesh>
+                <mesh position={[0.058, 0.39, 0.128]} rotation={[0, 0, 0.05]}>
+                  <boxGeometry args={[0.075, 0.36, 0.014]} />
+                  <meshStandardMaterial color="#2a2d30" roughness={0.82} />
+                </mesh>
+                <mesh position={[0, 0.55, 0.139]} rotation={[0, 0, 0.55]}>
+                  <boxGeometry args={[0.12, 0.022, 0.01]} />
+                  <meshStandardMaterial color="#e9dfd3" roughness={0.84} />
+                </mesh>
+                <mesh position={[0, 0.55, 0.14]} rotation={[0, 0, -0.55]}>
+                  <boxGeometry args={[0.12, 0.022, 0.01]} />
+                  <meshStandardMaterial color="#e9dfd3" roughness={0.84} />
+                </mesh>
+                <mesh position={[0, 0.2, 0.132]}>
+                  <boxGeometry args={[hipWidth * 0.96, 0.022, 0.012]} />
+                  <meshStandardMaterial color="#1d1b18" roughness={0.78} />
+                </mesh>
+              </>
+            ) : (
+              <>
+                <mesh position={[0, 0.58, 0.118]} rotation={[0, 0, 0.75]}>
+                  <boxGeometry args={[0.13, 0.028, 0.012]} />
+                  <meshStandardMaterial color="#f0e8dc" roughness={0.84} />
+                </mesh>
+                <mesh position={[0, 0.58, 0.119]} rotation={[0, 0, -0.75]}>
+                  <boxGeometry args={[0.13, 0.028, 0.012]} />
+                  <meshStandardMaterial color="#f0e8dc" roughness={0.84} />
+                </mesh>
+                <mesh position={[0, 0.35, 0.122]}>
+                  <boxGeometry args={[0.018, 0.32, 0.012]} />
+                  <meshStandardMaterial color="#141616" roughness={0.82} />
+                </mesh>
+                {[0.28, 0.38, 0.48].map((y) => (
+                  <mesh key={`shirt-button-${y}`} position={[0, y, 0.132]}>
+                    <sphereGeometry args={[0.012, 8, 8]} />
+                    <meshStandardMaterial color="#f2eee6" roughness={0.65} />
+                  </mesh>
+                ))}
+              </>
+            )}
             <mesh position={[0, 0.08, 0.13]}>
-              <boxGeometry args={[0.34 * hipWidthMul, 0.025, 0.012]} />
+              <boxGeometry args={[hipWidth, 0.025, 0.012]} />
               <meshStandardMaterial color="#1d1b18" roughness={0.78} />
             </mesh>
           </>
@@ -364,7 +396,12 @@ export function StylizedCharacter({
 
         {/* ======= HEAD ======= */}
         <group ref={headRef} position={[0, 0.77, 0]}>
-          <RoundedBox args={[0.2, 0.24, 0.2]} radius={0.08} smoothness={4} castShadow>
+          <RoundedBox
+            args={[female ? 0.19 : 0.205, female ? 0.245 : 0.24, female ? 0.19 : 0.205]}
+            radius={0.08}
+            smoothness={4}
+            castShadow
+          >
             <meshStandardMaterial color={col.skin} roughness={0.72} />
           </RoundedBox>
 
@@ -430,6 +467,31 @@ export function StylizedCharacter({
               ))}
             </>
           )}
+          {hair === 'bob' && (
+            <>
+              <mesh position={[0, 0.015, -0.005]} castShadow scale={[1.04, 1.0, 1.03]}>
+                <sphereGeometry
+                  args={[0.11, 22, 16, 0, Math.PI * 2, 0, Math.PI / 2.2]}
+                />
+                <meshStandardMaterial color={col.hair} roughness={0.88} />
+              </mesh>
+              <mesh position={[0, -0.06, -0.073]} castShadow>
+                <boxGeometry args={[0.215, 0.18, 0.052]} />
+                <meshStandardMaterial color={col.hair} roughness={0.88} />
+              </mesh>
+              {[-1, 1].map((sd) => (
+                <mesh
+                  key={`bob-side-${sd}`}
+                  position={[sd * 0.095, -0.032, 0.01]}
+                  rotation={[0, 0, sd * -0.08]}
+                  castShadow
+                >
+                  <boxGeometry args={[0.035, 0.18, 0.055]} />
+                  <meshStandardMaterial color={col.hair} roughness={0.88} />
+                </mesh>
+              ))}
+            </>
+          )}
           {hair === 'bun' && (
             <>
               {/* slicked-back skullcap */}
@@ -487,6 +549,26 @@ export function StylizedCharacter({
               <meshStandardMaterial color="#1a1410" />
             </mesh>
           ))}
+          {female && (
+            <>
+              {[-1, 1].map((sd) => (
+                <mesh
+                  key={`lash-${sd}`}
+                  position={[sd * 0.061, 0.018, 0.112]}
+                  rotation={[0, 0, sd * -0.42]}
+                >
+                  <boxGeometry args={[0.022, 0.004, 0.005]} />
+                  <meshStandardMaterial color="#1a1410" roughness={0.85} />
+                </mesh>
+              ))}
+              {[-1, 1].map((sd) => (
+                <mesh key={`earring-${sd}`} position={[sd * 0.106, -0.025, 0.018]}>
+                  <sphereGeometry args={[0.009, 8, 8]} />
+                  <meshStandardMaterial color="#c9a24a" metalness={0.45} roughness={0.35} />
+                </mesh>
+              ))}
+            </>
+          )}
 
           {/* eyebrows — angled inward for pain/anxious, outward for fatigued */}
           {[-1, 1].map((sd) => (
@@ -509,7 +591,7 @@ export function StylizedCharacter({
           {/* mouth — width + height track the expression */}
           <mesh position={[0, -0.058, 0.102]}>
             <boxGeometry args={[mouthW, mouthH, 0.006]} />
-            <meshStandardMaterial color="#8a3a32" />
+            <meshStandardMaterial color={mouthColor} />
           </mesh>
 
           {/* pain: add down-turned corners */}
@@ -522,7 +604,7 @@ export function StylizedCharacter({
                   rotation={[0, 0, sd * 0.5]}
                 >
                   <boxGeometry args={[0.018, 0.006, 0.006]} />
-                  <meshStandardMaterial color="#8a3a32" />
+                  <meshStandardMaterial color={mouthColor} />
                 </mesh>
               ))}
             </>
@@ -592,7 +674,7 @@ export function StylizedCharacter({
             return (
               <group
                 key={`arm-${i}`}
-                position={[side * 0.2, 0.5, 0]}
+                position={[side * shoulderX, 0.5, 0]}
                 rotation={[-0.55, 0, -0.6]}
               >
                 <mesh position={[0, -0.16, 0]} castShadow>
@@ -622,7 +704,7 @@ export function StylizedCharacter({
           return (
             <group
               key={`arm-${i}`}
-              position={[side * 0.2, 0.5, 0]}
+              position={[side * shoulderX, 0.5, 0]}
               rotation={[shoulderBend + armRot, 0, side * 0.08]}
             >
               <mesh position={[0, -0.16, 0]} castShadow>

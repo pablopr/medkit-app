@@ -1,5 +1,22 @@
 # Release Notes
 
+## 2026-05-11 — Barkibu cost accuracy and 3D patient polish
+
+### Shipped
+
+- Fixed the Barkibu estimate so wrap/debrief uses the closed encounter snapshot first, avoiding the previous fallback to a fresh empty patient that showed only the 55 EUR consultation line.
+- Added a `Treat` tab in the examine overlay so procedures, medication actions, disposition, and follow-up plans can be recorded during the consultation and included in the Barkibu estimate.
+- Made the Barkibu estimator more tolerant of completed-test snapshots and malformed older prescription data.
+- Aligned pet-owner gender across the 3D model, voice selection, and persona prompt using owner names instead of a case-id hash.
+- Refined the 3D owner and dog models with clearer female-owner presentation, breed-aware dog ears/muzzle proportions, collar detail, and less oversized dog scaling.
+
+### Verification
+
+- `npm test`
+- `npm run verify`
+- `npm run build`
+- Browser QA: simulated a Luna encounter with ECG, electrolytes, toxin decontamination, and maropitant. Barkibu estimated bill displayed 268.95 EUR instead of 55 EUR.
+
 ## 2026-05-10 — 3D clinic realism and expanded veterinary cases
 
 ### Shipped
