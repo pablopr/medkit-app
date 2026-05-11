@@ -9,6 +9,7 @@ import { useGameState, POLYCLINIC_BED_INDEX } from '../../game/store';
 import { CLINIC_LABELS } from '../../game/clinic';
 import { FloatingVoicePanel } from './FloatingVoicePanel';
 import { StylizedCharacter } from './StylizedCharacter';
+import type { CharacterExpression } from './StylizedCharacter';
 import { inferPetOwnerGender } from '../../voice/patientPersona';
 
 // ───────── World layout — a doctor's private office (muayenehane) ─────────
@@ -56,6 +57,7 @@ export const PATIENT_CHAIR_POS = CONSULTATION_SPOT_POS;
  *  where the owner and animal end up. */
 const PATIENT_SPAWN: [number, number, number] = [DOOR_X, 0, ROOM_FRONT_Z + 4];
 const PATIENT_AT_CONSULT: [number, number, number] = [PATIENT_CHAIR_POS[0], 0, PATIENT_CHAIR_POS[2]];
+const USE_PREMIUM_2D_COMPANIONS: boolean = true;
 
 const OUTER_DEPTH = CORRIDOR_FRONT_Z - WORLD_BACK_Z;
 const OUTER_CENTER_Z = (CORRIDOR_FRONT_Z + WORLD_BACK_Z) / 2;
@@ -316,7 +318,8 @@ function TubeBetween({
 }
 
 function OwnerDogLeash({ petPosition }: { petPosition: [number, number, number] }) {
-  const hand: [number, number, number] = [0.28, 0.84, 0.04];
+  const handX = petPosition[0] < 0 ? -0.28 : 0.28;
+  const hand: [number, number, number] = [handX, 0.84, 0.04];
   const slack: [number, number, number] = [
     (hand[0] + petPosition[0]) * 0.5,
     0.6,
@@ -2335,8 +2338,441 @@ function CaseProp({ patient }: { patient: MonitorPatient }) {
 
 function getPetCompanionPosition(patient: MonitorPatient): [number, number, number] {
   return patient.species === 'cat'
-    ? [0.62, 0.02, -0.06]
-    : [0.72, 0.02, -0.2];
+    ? [-0.38, 0.02, -0.02]
+    : [-0.34, 0.02, -0.08];
+}
+
+function canvasRoundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  const radius = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + w - radius, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+  ctx.lineTo(x + w, y + h - radius);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+  ctx.lineTo(x + radius, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
+function fillCanvasRoundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number, fill: string) {
+  canvasRoundRect(ctx, x, y, w, h, r);
+  ctx.fillStyle = fill;
+  ctx.fill();
+}
+
+function makeBillboardTexture(width: number, height: number, draw: (ctx: CanvasRenderingContext2D) => void): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('2D canvas unavailable for clinic billboard');
+  ctx.clearRect(0, 0, width, height);
+  draw(ctx);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = false;
+  return texture;
+}
+
+function useOwnerBillboardTexture({
+  gender,
+  age,
+  expression,
+  seed,
+}: {
+  gender: 'M' | 'F';
+  age: number;
+  expression: CharacterExpression;
+  seed?: string;
+}) {
+  const texture = useMemo(
+    () => makeBillboardTexture(560, 1024, (ctx) => drawOwnerBillboard(ctx, { gender, age, expression, seed })),
+    [gender, age, expression, seed],
+  );
+  useEffect(() => () => texture.dispose(), [texture]);
+  return texture;
+}
+
+function usePetBillboardTexture(patient: MonitorPatient) {
+  const texture = useMemo(
+    () => makeBillboardTexture(720, 620, (ctx) => drawPetBillboard(ctx, patient)),
+    [patient.id, patient.name, patient.species, patient.breed, patient.severity, patient.weightKg],
+  );
+  useEffect(() => () => texture.dispose(), [texture]);
+  return texture;
+}
+
+function drawOwnerBillboard(
+  ctx: CanvasRenderingContext2D,
+  {
+    gender,
+    age,
+    expression,
+    seed,
+  }: {
+    gender: 'M' | 'F';
+    age: number;
+    expression: CharacterExpression;
+    seed?: string;
+  },
+) {
+  const h = hashSceneString(seed ?? `${gender}-${age}`);
+  const skin = ['#f0c8a3', '#d9a77e', '#bd835d', '#8f5f41'][h % 4];
+  const hairBase = age > 62 ? '#b8b3aa' : ['#2b211b', '#4a2d1d', '#6b4630', '#171717'][h % 4];
+  const top = gender === 'F'
+    ? ['#425761', '#5d536a', '#705654', '#4c625b'][h % 4]
+    : ['#3e5668', '#5b5f63', '#6a513f', '#43584b'][h % 4];
+  const trouser = ['#22282c', '#34363a', '#4c463f'][h % 3];
+  const shoe = '#151719';
+
+  ctx.save();
+  ctx.shadowColor = 'rgba(35, 31, 28, 0.2)';
+  ctx.shadowBlur = 28;
+  ctx.shadowOffsetY = 16;
+  ctx.fillStyle = 'rgba(38, 34, 30, 0.2)';
+  ctx.ellipse(280, 926, 118, 34, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Legs and shoes.
+  fillCanvasRoundRect(ctx, 208, 608, 62, 284, 26, trouser);
+  fillCanvasRoundRect(ctx, 292, 608, 62, 284, 26, trouser);
+  fillCanvasRoundRect(ctx, 184, 874, 100, 34, 16, shoe);
+  fillCanvasRoundRect(ctx, 278, 874, 100, 34, 16, shoe);
+
+  // Torso and jacket/cardigan layers.
+  fillCanvasRoundRect(ctx, 174, 332, 218, 306, 54, top);
+  fillCanvasRoundRect(ctx, 206, 344, 150, 288, 38, gender === 'F' ? '#f2e8dc' : '#ebe2d6');
+  fillCanvasRoundRect(ctx, 164, 362, 58, 250, 26, top);
+  fillCanvasRoundRect(ctx, 340, 362, 58, 250, 26, top);
+  fillCanvasRoundRect(ctx, 154, 590, 78, 44, 20, skin);
+  fillCanvasRoundRect(ctx, 330, 590, 78, 44, 20, skin);
+  if (gender === 'F') {
+    ctx.strokeStyle = '#2c3133';
+    ctx.lineWidth = 10;
+    ctx.beginPath();
+    ctx.moveTo(208, 358);
+    ctx.lineTo(270, 620);
+    ctx.moveTo(354, 358);
+    ctx.lineTo(292, 620);
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = '#26313a';
+    ctx.beginPath();
+    ctx.moveTo(280, 358);
+    ctx.lineTo(312, 440);
+    ctx.lineTo(280, 560);
+    ctx.lineTo(248, 440);
+    ctx.closePath();
+    ctx.fill();
+    for (const y of [438, 500, 562]) {
+      ctx.beginPath();
+      ctx.arc(280, y, 8, 0, Math.PI * 2);
+      ctx.fillStyle = '#f7f2ea';
+      ctx.fill();
+    }
+  }
+
+  // Neck, face, hair.
+  fillCanvasRoundRect(ctx, 246, 276, 68, 82, 24, skin);
+  ctx.save();
+  if (gender === 'F') {
+    ctx.fillStyle = hairBase;
+    ctx.beginPath();
+    ctx.ellipse(280, 232, 104, 134, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = age > 62 ? '#d2cec5' : hairBase;
+    ctx.beginPath();
+    ctx.ellipse(206, 274, 42, 104, -0.18, 0, Math.PI * 2);
+    ctx.ellipse(354, 274, 42, 104, 0.18, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    ctx.fillStyle = hairBase;
+    ctx.beginPath();
+    ctx.ellipse(280, 188, 86, 58, 0, Math.PI, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  fillCanvasRoundRect(ctx, 198, 174, 164, 172, 70, skin);
+  if (gender === 'M' && (h % 3) === 0) {
+    ctx.fillStyle = hairBase;
+    ctx.beginPath();
+    ctx.ellipse(280, 302, 58, 32, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const browTilt = expression === 'pain' ? 0.45 : expression === 'anxious' ? 0.3 : expression === 'fatigued' ? -0.12 : 0;
+  ctx.strokeStyle = '#2f2924';
+  ctx.lineWidth = 7;
+  ctx.beginPath();
+  ctx.moveTo(230, 238 + browTilt * 14);
+  ctx.lineTo(264, 232 - browTilt * 12);
+  ctx.moveTo(296, 232 - browTilt * 12);
+  ctx.lineTo(330, 238 + browTilt * 14);
+  ctx.stroke();
+  ctx.fillStyle = '#1f1c18';
+  ctx.beginPath();
+  ctx.ellipse(248, 262, 9, expression === 'fatigued' ? 4 : 9, 0, 0, Math.PI * 2);
+  ctx.ellipse(312, 262, 9, expression === 'fatigued' ? 4 : 9, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = expression === 'pain' || expression === 'anxious' ? '#7b3b34' : '#5c352f';
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  if (expression === 'pain') {
+    ctx.arc(280, 306, 22, Math.PI * 0.12, Math.PI * 0.88, true);
+  } else {
+    ctx.moveTo(256, 304);
+    ctx.quadraticCurveTo(280, expression === 'fatigued' ? 306 : 318, 304, 304);
+  }
+  ctx.stroke();
+
+  // Medical-context detail: lanyard keeps the adult owner grounded in a real room.
+  ctx.strokeStyle = '#dfd2bf';
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(234, 354);
+  ctx.lineTo(280, 456);
+  ctx.lineTo(326, 354);
+  ctx.stroke();
+  fillCanvasRoundRect(ctx, 252, 452, 56, 34, 8, '#f8f4eb');
+}
+
+function drawPetBillboard(ctx: CanvasRenderingContext2D, patient: MonitorPatient) {
+  const color = petPalette(patient.id + patient.name, patient.species);
+  const dark = '#2a211b';
+  const cream = '#f0dfc4';
+  ctx.save();
+  ctx.shadowColor = 'rgba(35, 31, 28, 0.18)';
+  ctx.shadowBlur = 22;
+  ctx.shadowOffsetY = 12;
+  ctx.fillStyle = 'rgba(38, 34, 30, 0.22)';
+  ctx.ellipse(360, 530, patient.species === 'dog' ? 230 : 190, 42, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  if (patient.species === 'cat') {
+    drawCatCarrierBillboard(ctx, patient, color);
+    return;
+  }
+
+  const breed = (patient.breed ?? '').toLowerCase();
+  const longEars = /beagle|hound|labrador|retriever|setter|spaniel/.test(breed);
+  const uprightEars = !longEars && /akita|collie|husky|podenco|shepherd|shiba|terrier/.test(breed);
+  const stocky = patient.weightKg > 27 || /bulldog|labrador|retriever|rottweiler/.test(breed);
+  const compact = /bulldog|boxer|pug|french/.test(breed);
+  const panting = patient.severity === 'urgent' || /pant|breath|chocolate|heat/i.test(patient.chiefComplaint);
+
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.ellipse(318, 360, stocky ? 174 : 150, stocky ? 104 : 88, -0.04, 0, Math.PI * 2);
+  ctx.ellipse(468, 354, 118, 72, 0.12, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = cream;
+  ctx.beginPath();
+  ctx.ellipse(248, 388, 72, 46, -0.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  for (const [x, y, h] of [[220, 408, 122], [308, 418, 116], [438, 418, 116], [514, 410, 122]] as const) {
+    fillCanvasRoundRect(ctx, x, y, 36, h, 18, color);
+    fillCanvasRoundRect(ctx, x - 12, y + h - 10, 74, 34, 16, '#4e382b');
+  }
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 28;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(568, 332);
+  ctx.quadraticCurveTo(654, 250, 620, 186);
+  ctx.stroke();
+  ctx.lineWidth = 14;
+  ctx.strokeStyle = '#efe1c7';
+  ctx.beginPath();
+  ctx.moveTo(586, 316);
+  ctx.quadraticCurveTo(632, 262, 610, 214);
+  ctx.stroke();
+
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.ellipse(162, 300, compact ? 88 : 78, compact ? 74 : 82, -0.06, 0, Math.PI * 2);
+  ctx.fill();
+  if (uprightEars) {
+    ctx.fillStyle = dark;
+    ctx.beginPath();
+    ctx.moveTo(106, 242);
+    ctx.lineTo(128, 128);
+    ctx.lineTo(174, 248);
+    ctx.moveTo(202, 246);
+    ctx.lineTo(248, 132);
+    ctx.lineTo(250, 260);
+    ctx.fill();
+  } else {
+    ctx.fillStyle = dark;
+    ctx.beginPath();
+    ctx.ellipse(98, 306, 38, longEars ? 96 : 64, -0.12, 0, Math.PI * 2);
+    ctx.ellipse(226, 306, 38, longEars ? 96 : 64, 0.12, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.fillStyle = '#8a634a';
+  ctx.beginPath();
+  ctx.ellipse(120, 344, compact ? 70 : 84, compact ? 42 : 48, -0.1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#16110e';
+  ctx.beginPath();
+  ctx.ellipse(78, 340, 16, 12, 0, 0, Math.PI * 2);
+  ctx.fill();
+  for (const [x, y] of [[145, 286], [196, 284]] as const) {
+    ctx.beginPath();
+    ctx.arc(x, y, 10, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.strokeStyle = PALETTE.barkibuMint;
+  ctx.lineWidth = 14;
+  ctx.beginPath();
+  ctx.moveTo(192, 356);
+  ctx.quadraticCurveTo(242, 382, 302, 354);
+  ctx.stroke();
+  if (panting) {
+    ctx.fillStyle = '#c35b58';
+    ctx.beginPath();
+    ctx.ellipse(104, 372, 18, 34, 0.35, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawCatCarrierBillboard(ctx: CanvasRenderingContext2D, patient: MonitorPatient, color: string) {
+  const persian = /persian|persa/i.test(patient.breed ?? '');
+  fillCanvasRoundRect(ctx, 132, 210, 456, 286, 72, '#ded5c7');
+  fillCanvasRoundRect(ctx, 160, 246, 400, 220, 54, '#ebe4d8');
+  fillCanvasRoundRect(ctx, 238, 206, 244, 42, 20, '#9e9588');
+  ctx.strokeStyle = '#8d8173';
+  ctx.lineWidth = 18;
+  ctx.beginPath();
+  ctx.arc(360, 220, 74, Math.PI, 0);
+  ctx.stroke();
+  fillCanvasRoundRect(ctx, 238, 284, 244, 154, 42, '#2e2d2b');
+  ctx.strokeStyle = '#b7ab9c';
+  ctx.lineWidth = 10;
+  for (const x of [278, 318, 358, 398, 438]) {
+    ctx.beginPath();
+    ctx.moveTo(x, 292);
+    ctx.lineTo(x, 432);
+    ctx.stroke();
+  }
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.ellipse(358, 378, persian ? 102 : 82, persian ? 84 : 68, 0, 0, Math.PI * 2);
+  ctx.fill();
+  if (persian) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 22;
+    for (let i = 0; i < 12; i++) {
+      const a = (Math.PI * 2 * i) / 12;
+      ctx.beginPath();
+      ctx.moveTo(358 + Math.cos(a) * 58, 378 + Math.sin(a) * 48);
+      ctx.lineTo(358 + Math.cos(a) * 112, 378 + Math.sin(a) * 88);
+      ctx.stroke();
+    }
+  }
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(300, 322);
+  ctx.lineTo(318, 250);
+  ctx.lineTo(354, 324);
+  ctx.moveTo(416, 322);
+  ctx.lineTo(398, 250);
+  ctx.lineTo(362, 324);
+  ctx.fill();
+  ctx.fillStyle = '#171412';
+  for (const x of [330, 386]) {
+    ctx.beginPath();
+    ctx.ellipse(x, 372, 11, 17, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.fillStyle = '#805a50';
+  ctx.beginPath();
+  ctx.ellipse(358, 398, persian ? 9 : 11, persian ? 6 : 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#d8c7ae';
+  ctx.lineWidth = 4;
+  for (const side of [-1, 1]) {
+    for (const y of [394, 410, 426]) {
+      ctx.beginPath();
+      ctx.moveTo(358 + side * 14, 404);
+      ctx.lineTo(358 + side * 92, y);
+      ctx.stroke();
+    }
+  }
+}
+
+function PremiumOwnerBillboard({
+  pose,
+  walkCycle,
+  age,
+  gender,
+  seed,
+  expression,
+}: {
+  pose: 'walking' | 'standing';
+  walkCycle: number;
+  age: number;
+  gender: 'M' | 'F';
+  seed?: string;
+  expression: CharacterExpression;
+}) {
+  const texture = useOwnerBillboardTexture({ gender, age, expression, seed });
+  const bob = pose === 'walking' ? Math.sin(walkCycle * Math.PI * 2) * 0.035 : 0;
+  const sway = pose === 'walking' ? Math.sin(walkCycle * Math.PI * 2) * 0.035 : 0;
+  return (
+    <group position={[0, bob, 0]} rotation={[0, 0, sway]}>
+      <mesh position={[0, 0.88, 0]} castShadow>
+        <planeGeometry args={[0.82, 1.78]} />
+        <meshBasicMaterial map={texture} transparent depthWrite={false} />
+      </mesh>
+      <mesh position={[0, 0.018, 0.05]} rotation={[-Math.PI / 2, 0, 0]} scale={[0.56, 0.18, 1]}>
+        <circleGeometry args={[1, 32]} />
+        <meshBasicMaterial color="#1f211f" transparent opacity={0.16} depthWrite={false} />
+      </mesh>
+    </group>
+  );
+}
+
+function PremiumPetBillboard({
+  patient,
+  position,
+  rotationY = Math.PI - 0.12,
+}: {
+  patient: MonitorPatient;
+  position: [number, number, number];
+  rotationY?: number;
+}) {
+  const texture = usePetBillboardTexture(patient);
+  const isCat = patient.species === 'cat';
+  const width = isCat ? 0.92 : 1.12;
+  const height = isCat ? 0.78 : 0.96;
+  const weightScale = isCat
+    ? THREE.MathUtils.clamp(patient.weightKg / 5.5, 0.82, 1.05)
+    : THREE.MathUtils.clamp(patient.weightKg / 26, 0.72, 1.12);
+  return (
+    <group position={position} rotation={[0, rotationY, 0]} scale={weightScale}>
+      <mesh position={[0, height / 2, 0]} castShadow>
+        <planeGeometry args={[width, height]} />
+        <meshBasicMaterial map={texture} transparent depthWrite={false} />
+      </mesh>
+      <mesh position={[0.02, 0.02, 0.06]} rotation={[-Math.PI / 2, 0, 0]} scale={[width * 0.44, 0.16, 1]}>
+        <circleGeometry args={[1, 32]} />
+        <meshBasicMaterial color="#1f211f" transparent opacity={0.16} depthWrite={false} />
+      </mesh>
+      <Text position={[0, 0.02, 0.74]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.07} color="#6b4f3f" anchorX="center" anchorY="middle" fontWeight={900}>
+        {patient.name}
+      </Text>
+    </group>
+  );
 }
 
 function ConsultationPet({
@@ -2348,6 +2784,9 @@ function ConsultationPet({
   position?: [number, number, number];
   rotationY?: number;
 }) {
+  if (USE_PREMIUM_2D_COMPANIONS) {
+    return <PremiumPetBillboard patient={patient} position={position} rotationY={0} />;
+  }
   const color = petPalette(patient.id + patient.name, patient.species);
   const isCat = patient.species === 'cat';
   const weightScale = isCat
@@ -3287,15 +3726,26 @@ function WalkingPatient({
   const petPosition = displayPatient ? getPetCompanionPosition(displayPatient) : null;
   return (
     <group ref={groupRef as React.MutableRefObject<Group>} position={PATIENT_SPAWN}>
-      <StylizedCharacter
-        pose={ownerPose}
-        walkCycle={walkCycleRef.current}
-        age={patientAge}
-        gender={patientGender}
-        seed={ownerCaseId ? `${ownerCaseId}-owner` : undefined}
-        expression={expression}
-        lookAtCamera={false}
-      />
+      {USE_PREMIUM_2D_COMPANIONS ? (
+        <PremiumOwnerBillboard
+          pose={ownerPose}
+          walkCycle={walkCycleRef.current}
+          age={patientAge}
+          gender={patientGender}
+          seed={ownerCaseId ? `${ownerCaseId}-owner` : undefined}
+          expression={expression}
+        />
+      ) : (
+        <StylizedCharacter
+          pose={ownerPose}
+          walkCycle={walkCycleRef.current}
+          age={patientAge}
+          gender={patientGender}
+          seed={ownerCaseId ? `${ownerCaseId}-owner` : undefined}
+          expression={expression}
+          lookAtCamera={false}
+        />
+      )}
       {displayPatient && petPosition && (
         <>
           <ConsultationPet patient={displayPatient} position={petPosition} />

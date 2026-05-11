@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 import { useScreen } from '../game/store';
 
-const MUTED_KEY = 'medkit:music-muted';
-const VOLUME = 0.18;
+const MUTED_KEY = 'medkit:clinic-ambience-muted';
+const VOLUME = 0.1;
 
 function readMuted(): boolean {
   try {
@@ -21,19 +21,18 @@ function writeMuted(v: boolean) {
   }
 }
 
-export function BackgroundMusic() {
+export function ClinicAmbience() {
   const screen = useScreen();
   const [userMuted, setUserMuted] = useState<boolean>(readMuted);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Lobby = anywhere outside an active encounter. Splash plays too — by
-  // the time the audio context can decode anything the user has clicked
-  // through it, so autoplay is fine there in practice.
+  // Lobby = anywhere outside an active encounter. Splash plays too because
+  // the first user gesture usually arrives before browsers allow playback.
   const inSession = screen === 'encounter';
   const shouldPlay = !userMuted && !inSession;
 
   useEffect(() => {
-    const a = new Audio('/assets/audio/vetkit-lobby-music.wav');
+    const a = new Audio('/assets/audio/vetkit-clinic-ambience.wav');
     a.loop = true;
     a.volume = VOLUME;
     a.preload = 'auto';
@@ -93,16 +92,16 @@ export function BackgroundMusic() {
   return (
     <button
       type="button"
-      className="music-toggle"
+      className="ambience-toggle"
       onClick={toggle}
       title={
         userMuted
-          ? 'Music muted — click to unmute'
+          ? 'Clinic ambience muted - click to unmute'
           : inSession
-            ? 'Music paused during session'
-            : 'Music on — click to mute'
+            ? 'Clinic ambience paused during consultation'
+            : 'Clinic ambience on - click to mute'
       }
-      aria-label={userMuted ? 'Unmute music' : 'Mute music'}
+      aria-label={userMuted ? 'Unmute clinic ambience' : 'Mute clinic ambience'}
       style={{
         position: 'fixed',
         top: 18,

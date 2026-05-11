@@ -1,5 +1,21 @@
 # Release Notes
 
+## 2026-05-11 — Clinic ambience and 2.5D consultation companions
+
+### Shipped
+
+- Replaced the lobby music loop with a quiet clinic ambience loop: distant reception murmur, room tone, soft collar detail, and occasional dog/cat cues.
+- Renamed the playback component from background music to clinic ambience, with matching mute labels and lower default volume.
+- Added a premium 2.5D owner and pet presentation inside the 3D clinic: the owner, dog, and cat now render as canvas-textured clinical billboards instead of primitive toy-like meshes.
+- Kept the previous procedural 3D characters as a fallback path while the new visual direction is validated.
+
+### Verification
+
+- `npm test`
+- `npm run verify`
+- `npm run build`
+- Browser QA: checked local encounter screenshots for both dog and cat cases; owner, leash, dog, and cat carrier are visible in the 3D consultation room.
+
 ## 2026-05-11 — Barkibu cost accuracy and 3D patient polish
 
 ### Shipped
