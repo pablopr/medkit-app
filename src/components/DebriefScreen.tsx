@@ -494,7 +494,7 @@ export function DebriefScreen() {
   // mount, the live patient slot has been cleared so the 3D scene can play
   // the walk-out animation. Fall back to a still-active patient (rare:
   // the screen was opened directly without ending the encounter).
-  const patient = reviewed?.patientSnapshot ?? state.polyclinic.patient ?? state.lastEncounter;
+  const patient = reviewed?.patientSnapshot ?? state.lastEncounter ?? state.polyclinic.patient;
   const c = useMemo<PatientCase | null>(() => {
     return patient?.case ?? (state.selectedCaseId ? getPatientCase(state.selectedCaseId) : null) ?? null;
   }, [patient, state.selectedCaseId]);

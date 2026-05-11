@@ -312,6 +312,14 @@ class Store {
       p.submittedDiagnosisId ? p : { ...p, submittedDiagnosisId: dxId },
     );
 
+  /** Treatments tab: record a procedure, medication, or disposition action
+   *  performed/planned during this consultation. */
+  givePolyclinicTreatment = (treatmentId: string) =>
+    this.updatePolyclinicPatient((p) => {
+      if (p.givenTreatmentIds.includes(treatmentId)) return p;
+      return { ...p, givenTreatmentIds: [...p.givenTreatmentIds, treatmentId] };
+    });
+
   /** Rx tab: append a prescription line to the patient's record. */
   addPolyclinicPrescription = (rx: { medicationId: string; dose: string; duration: string }) =>
     this.updatePolyclinicPatient((p) => ({

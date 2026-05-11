@@ -24,7 +24,7 @@ export function EndConfirmScreen() {
   const checked = useStore((s) => s.endConfirm);
   const caseId = useStore((s) => s.selectedCaseId);
   const c = getCase(caseId);
-  const patient = state.polyclinic.patient ?? state.lastEncounter;
+  const patient = state.lastEncounter ?? state.polyclinic.patient;
   const barkibuEstimate = patient ? estimateBarkibuSupport(patient) : null;
 
   return (

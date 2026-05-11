@@ -114,6 +114,24 @@ function uniqueInOrder(ids: string[]): string[] {
   return out;
 }
 
+function safeIds(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string') : [];
+}
+
+function safePrescriptions(value: unknown): NonNullable<ActivePatient['prescriptions']> {
+  if (!Array.isArray(value)) return [];
+  return value.filter((rx): rx is NonNullable<ActivePatient['prescriptions']>[number] => {
+    if (!rx || typeof rx !== 'object') return false;
+    const candidate = rx as Partial<NonNullable<ActivePatient['prescriptions']>[number]>;
+    return (
+      typeof candidate.medicationId === 'string' &&
+      typeof candidate.dose === 'string' &&
+      typeof candidate.duration === 'string' &&
+      typeof candidate.prescribedAt === 'number'
+    );
+  });
+}
+
 function medicationAmount(medicationId: string, doseText: string, weightKg: number): number {
   const cost = MEDICATION_COSTS[medicationId];
   if (!cost) return 20;
@@ -134,7 +152,11 @@ export function estimateBarkibuSupport(patient: ActivePatient): BarkibuSupportEs
   ];
 
   const testById = new Map(TESTS.map((t) => [t.id, t]));
-  for (const testId of uniqueInOrder(patient.orderedTestIds)) {
+  const costedTestIds = uniqueInOrder([
+    ...safeIds(patient.orderedTestIds),
+    ...safeIds(patient.completedTestIds),
+  ]);
+  for (const testId of costedTestIds) {
     const test = testById.get(testId);
     lineItems.push({
       id: `test:${testId}`,
@@ -145,7 +167,7 @@ export function estimateBarkibuSupport(patient: ActivePatient): BarkibuSupportEs
   }
 
   const treatmentById = new Map(TREATMENTS.map((t) => [t.id, t]));
-  for (const treatmentId of uniqueInOrder(patient.givenTreatmentIds)) {
+  for (const treatmentId of uniqueInOrder(safeIds(patient.givenTreatmentIds))) {
     const treatment = treatmentById.get(treatmentId);
     lineItems.push({
       id: `treatment:${treatmentId}`,
@@ -155,7 +177,7 @@ export function estimateBarkibuSupport(patient: ActivePatient): BarkibuSupportEs
     });
   }
 
-  for (const rx of patient.prescriptions ?? []) {
+  for (const rx of safePrescriptions(patient.prescriptions)) {
     const med = medicationById(rx.medicationId);
     const doseText = `${rx.dose} ${med?.defaultDose ?? ''}`;
     lineItems.push({

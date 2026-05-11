@@ -5,11 +5,12 @@ import { getTestReport } from '../data/defaultTestResults';
 import { getImagingExamples } from '../data/radiologyImages';
 import { POLYCLINIC_DIAGNOSIS_LABELS, getCaseSpecialty } from '../data/polyclinicPatients';
 import { MEDICATIONS, CATEGORY_LABELS, SPECIALTY_MEDICATION_CATEGORIES, medicationById, type Medication, type MedicationCategory } from '../data/medications';
+import { TREATMENTS } from '../data/treatments';
 import { CLINIC_LABELS } from '../game/clinic';
 import { getExistingConversation } from '../voice/conversationStore';
 import type { ChatMessage } from '../voice/claude';
 
-type Tab = 'history' | 'chat' | 'tests' | 'results' | 'diagnose' | 'rx';
+type Tab = 'history' | 'chat' | 'tests' | 'results' | 'diagnose' | 'treatments' | 'rx';
 
 interface Props {
   onClose: () => void;
@@ -39,9 +40,11 @@ export function ExamineOverlay({ onClose, onDispatch }: Props) {
   const ordered = new Set(patient.orderedTestIds);
   const completed = new Set(patient.completedTestIds);
   const submitted = patient.submittedDiagnosisId;
+  const givenTreatments = new Set(patient.givenTreatmentIds);
 
   const newResultsCount = patient.orderedTestIds.filter((id) => completed.has(id)).length;
   const rxCount = patient.prescriptions?.length ?? 0;
+  const treatmentCount = givenTreatments.size;
   const rxUnlocked = submitted !== null;
 
   const tabs: Array<{ id: Tab; label: string; badge?: number | string; disabled?: boolean }> = [
@@ -50,6 +53,7 @@ export function ExamineOverlay({ onClose, onDispatch }: Props) {
     { id: 'tests', label: 'Order tests' },
     { id: 'results', label: 'Results', badge: newResultsCount > 0 ? newResultsCount : undefined },
     { id: 'diagnose', label: 'Diagnose' },
+    { id: 'treatments', label: 'Treat', badge: treatmentCount > 0 ? treatmentCount : undefined },
     { id: 'rx', label: 'Rx', badge: rxCount > 0 ? rxCount : undefined, disabled: !rxUnlocked },
   ];
 
@@ -226,6 +230,7 @@ export function ExamineOverlay({ onClose, onDispatch }: Props) {
               submitted={submitted}
             />
           )}
+          {tab === 'treatments' && <TreatmentsTab patient={patient} />}
           {tab === 'rx' && (
             <RxTab patient={patient} onDispatch={onDispatch} unlocked={rxUnlocked} />
           )}
@@ -244,7 +249,9 @@ export function ExamineOverlay({ onClose, onDispatch }: Props) {
             justifyContent: 'space-between',
           }}
         >
-          <span>Press Esc to close · {ordered.size} test{ordered.size === 1 ? '' : 's'} ordered</span>
+          <span>
+            Press Esc to close · {ordered.size} test{ordered.size === 1 ? '' : 's'} ordered · {treatmentCount} treatment{treatmentCount === 1 ? '' : 's'}
+          </span>
           <span>{submitted ? `Diagnosis: ${diagLabel(submitted)}` : 'Diagnosis pending'}</span>
         </div>
       </div>
@@ -970,6 +977,119 @@ function DiagnoseTab({
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Treatments tab — procedures, medication actions, disposition ─────
+
+function TreatmentsTab({
+  patient,
+}: {
+  patient: NonNullable<ReturnType<typeof useGameState>['polyclinic']['patient']>;
+}) {
+  const selected = new Set(patient.givenTreatmentIds);
+  const groups = useMemo(() => {
+    const out: Record<'procedure' | 'medication' | 'disposition', typeof TREATMENTS> = {
+      procedure: [],
+      medication: [],
+      disposition: [],
+    };
+    TREATMENTS.forEach((t) => out[t.category].push(t));
+    return out;
+  }, []);
+
+  const labels: Record<keyof typeof groups, string> = {
+    procedure: 'Procedures and supportive care',
+    medication: 'Medication actions',
+    disposition: 'Disposition and follow-up',
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {patient.givenTreatmentIds.length > 0 && (
+        <section>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 800,
+              color: 'var(--ink-2)',
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              marginBottom: 8,
+            }}
+          >
+            Recorded ({patient.givenTreatmentIds.length})
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {patient.givenTreatmentIds.map((id) => {
+              const treatment = TREATMENTS.find((t) => t.id === id);
+              return (
+                <span key={id} className="chip mint">
+                  {treatment?.name ?? id}
+                </span>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {(['procedure', 'medication', 'disposition'] as const).map((category) => (
+        <CollapsibleSection
+          key={category}
+          icon="Plan"
+          label={labels[category]}
+          count={groups[category].length}
+          tone={category === 'procedure' ? 'var(--sky)' : category === 'medication' ? 'var(--peach)' : 'var(--mint)'}
+          defaultOpen={category === 'procedure'}
+        >
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+              gap: 8,
+            }}
+          >
+            {groups[category].map((treatment) => {
+              const done = selected.has(treatment.id);
+              return (
+                <button
+                  key={treatment.id}
+                  type="button"
+                  className={`tap btn-plush ${done ? '' : 'ghost'}`}
+                  disabled={done}
+                  onClick={() => store.givePolyclinicTreatment(treatment.id)}
+                  style={{
+                    fontSize: 13,
+                    padding: '10px 12px',
+                    textAlign: 'left',
+                    fontWeight: 800,
+                    opacity: done ? 0.62 : 1,
+                    cursor: done ? 'default' : 'pointer',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <span>{done ? 'Recorded · ' : ''}{treatment.name}</span>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 800,
+                        background: 'var(--cream)',
+                        border: '1px solid #D5D8DA',
+                        borderRadius: 'var(--r-pill)',
+                        padding: '1px 7px',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {done ? 'done' : 'record'}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </CollapsibleSection>
+      ))}
     </div>
   );
 }
