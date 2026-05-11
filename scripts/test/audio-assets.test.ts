@@ -66,7 +66,7 @@ test('generated audio assets are audible without clipping', () => {
   const expectations = [
     { file: 'ui-click.wav', minRms: 5_000, minDuration: 0.04 },
     { file: 'case-complete.wav', minRms: 4_000, minDuration: 0.12 },
-    { file: 'vetkit-lobby-music.wav', minRms: 3_000, minDuration: 28 },
+    { file: 'vetkit-clinic-ambience.wav', minRms: 350, minDuration: 38 },
   ];
 
   for (const item of expectations) {
@@ -77,25 +77,26 @@ test('generated audio assets are audible without clipping', () => {
   }
 });
 
-test('lobby background uses music rather than noise ambience', () => {
+test('lobby background uses subtle clinic ambience rather than music', () => {
   const root = join(process.cwd(), 'public', 'assets', 'audio');
-  const stats = read16BitMonoWav(join(root, 'vetkit-lobby-music.wav'));
-  const backgroundMusic = readFileSync(join(process.cwd(), 'src', 'components', 'BackgroundMusic.tsx'), 'utf8');
+  const stats = read16BitMonoWav(join(root, 'vetkit-clinic-ambience.wav'));
+  const clinicAmbience = readFileSync(join(process.cwd(), 'src', 'components', 'ClinicAmbience.tsx'), 'utf8');
 
-  assert.match(backgroundMusic, /vetkit-lobby-music\.wav/);
-  assert.doesNotMatch(backgroundMusic, /vetkit-lobby-ambient\.wav/);
-  assert.ok(stats.zeroCrossingRate < 0.12, `lobby music is too noise-like: zcr=${stats.zeroCrossingRate.toFixed(3)}`);
+  assert.match(clinicAmbience, /vetkit-clinic-ambience\.wav/);
+  assert.doesNotMatch(clinicAmbience, /vetkit-lobby-music\.wav/);
+  assert.ok(stats.zeroCrossingRate > 0.09, `clinic ambience is too tonal: zcr=${stats.zeroCrossingRate.toFixed(3)}`);
+  assert.ok(stats.peak < 12_000, `clinic ambience is too loud: peak=${stats.peak}`);
 });
 
 test('playback volume constants keep UI sounds audible', () => {
   const uiSoundLayer = readFileSync(join(process.cwd(), 'src', 'components', 'UiSoundLayer.tsx'), 'utf8');
-  const backgroundMusic = readFileSync(join(process.cwd(), 'src', 'components', 'BackgroundMusic.tsx'), 'utf8');
+  const clinicAmbience = readFileSync(join(process.cwd(), 'src', 'components', 'ClinicAmbience.tsx'), 'utf8');
 
   const click = Number(uiSoundLayer.match(/CLICK_VOLUME = ([0-9.]+)/)?.[1]);
   const complete = Number(uiSoundLayer.match(/COMPLETE_VOLUME = ([0-9.]+)/)?.[1]);
-  const music = Number(backgroundMusic.match(/VOLUME = ([0-9.]+)/)?.[1]);
+  const ambience = Number(clinicAmbience.match(/VOLUME = ([0-9.]+)/)?.[1]);
 
   assert.ok(click >= 0.2 && click <= 0.5, `CLICK_VOLUME out of range: ${click}`);
   assert.ok(complete >= 0.25 && complete <= 0.6, `COMPLETE_VOLUME out of range: ${complete}`);
-  assert.ok(music >= 0.15 && music <= 0.35, `music VOLUME out of range: ${music}`);
+  assert.ok(ambience >= 0.06 && ambience <= 0.16, `ambience VOLUME out of range: ${ambience}`);
 });

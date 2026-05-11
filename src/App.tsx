@@ -14,7 +14,7 @@ import { DebriefScreen } from './components/DebriefScreen';
 import { HistoryScreen } from './components/HistoryScreen';
 import { AgenticRoundsScreen } from './components/AgenticRoundsScreen';
 import { AgentTopologyScreen } from './components/AgentTopologyScreen';
-import { BackgroundMusic } from './components/BackgroundMusic';
+import { ClinicAmbience } from './components/ClinicAmbience';
 import { UiSoundLayer } from './components/UiSoundLayer';
 
 export default function App() {
@@ -56,7 +56,7 @@ export default function App() {
       {screen === 'history' && <HistoryScreen />}
       {screen === 'agenticRounds' && <AgenticRoundsScreen />}
       {screen === 'agentTopology' && <AgentTopologyScreen />}
-      <BackgroundMusic />
+      <ClinicAmbience />
       <UiSoundLayer />
     </div>
   );
