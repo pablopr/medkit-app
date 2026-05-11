@@ -148,8 +148,9 @@ export function ExamineOverlay({ onClose, onDispatch }: Props) {
         <div
           style={{
             display: 'flex',
+            flexWrap: 'wrap',
             gap: 8,
-            padding: '12px 22px 0',
+            padding: '12px 22px 10px',
             borderBottom: '1px solid #D5D8DA',
             background: 'white',
           }}
@@ -174,7 +175,7 @@ export function ExamineOverlay({ onClose, onDispatch }: Props) {
                   fontWeight: 800,
                   fontSize: 13,
                   cursor: disabled ? 'not-allowed' : 'pointer',
-                  marginBottom: -3,
+                  marginBottom: 0,
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 8,
@@ -246,6 +247,8 @@ export function ExamineOverlay({ onClose, onDispatch }: Props) {
             fontWeight: 700,
             color: 'var(--ink-2)',
             display: 'flex',
+            flexWrap: 'wrap',
+            gap: 8,
             justifyContent: 'space-between',
           }}
         >
