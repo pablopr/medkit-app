@@ -2,12 +2,15 @@ import { useSyncExternalStore } from 'react';
 import type {
   ActivePatient,
   AvatarStyle,
+  ConversationTranscriptMessage,
   EndConfirmChecks,
   GameState,
   PatientCase,
   RoomLayout,
   Screen,
   Tweaks,
+  VoiceActionExtractionSummary,
+  VoiceClinicalAction,
 } from './types';
 import type { ClinicId } from './clinic';
 import { DEFAULT_CLINIC } from './clinic';
@@ -15,6 +18,7 @@ import type { PaletteName } from '../styles/palettes';
 import type { Case as MedKitCase } from '../data/cases';
 import { CASES, getCase, getCaseClinic, getPatientCase } from '../data/cases';
 import { ensureAudioContext } from '../voice/conversationStore';
+import { applyVoiceClinicalActionsToPatient } from './voiceClinicalActions';
 
 const ONBOARDED_KEY = 'medkit:onboarded';
 
@@ -215,11 +219,22 @@ class Store {
    *  ordering tests or prescribing. The debrief and Barkibu estimate still
    *  need a completed consultation record so they can show the baseline
    *  consult fee and grade the omitted clinical work. */
-  finishPolyclinicCase = () => {
+  finishPolyclinicCase = (
+    conversationMessages: ReadonlyArray<ConversationTranscriptMessage> = [],
+    voiceClinicalActions: ReadonlyArray<VoiceClinicalAction> = [],
+    voiceActionExtraction?: VoiceActionExtractionSummary,
+  ) => {
     const snapshot = this.state.polyclinic.patient;
+    const extraction = voiceActionExtraction ?? {
+      status: voiceClinicalActions.length > 0 ? 'applied' : 'skipped',
+      extractedAt: Date.now(),
+    } satisfies VoiceActionExtractionSummary;
+    const completed = snapshot
+      ? applyVoiceClinicalActionsToPatient(snapshot, voiceClinicalActions, extraction, conversationMessages)
+      : snapshot;
     this.set({
       polyclinic: { ...this.state.polyclinic, patient: null },
-      lastEncounter: snapshot ?? this.state.lastEncounter,
+      lastEncounter: completed ?? this.state.lastEncounter,
     });
   };
 

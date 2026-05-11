@@ -76,6 +76,20 @@ export interface DebriefRequest {
       dose: string;
       duration: string;
     }>;
+    conversation_messages: Array<{
+      role: 'user' | 'assistant';
+      content: string;
+    }>;
+    voice_actions: Array<{
+      type: string;
+      id?: string;
+      medication_id?: string;
+      label: string;
+      evidence: string;
+      confidence: number;
+      applied: boolean;
+      reason?: string;
+    }>;
     submitted_diagnosis_id: string | null;
     diagnosis_was_correct: boolean | null;
   };
@@ -131,6 +145,20 @@ export function buildDebriefRequest(
     dose: p.dose,
     duration: p.duration,
   }));
+  const conversation_messages = (patient.conversationMessages ?? []).map((message) => ({
+    role: message.role,
+    content: message.content,
+  }));
+  const voice_actions = (patient.voiceClinicalActions ?? []).map((action) => ({
+    type: action.type,
+    id: action.id,
+    medication_id: action.medicationId,
+    label: action.label,
+    evidence: action.evidence,
+    confidence: action.confidence,
+    applied: action.applied ?? false,
+    reason: action.reason,
+  }));
 
   return {
     case_id: c.id,
@@ -157,6 +185,8 @@ export function buildDebriefRequest(
       tests_ordered,
       treatments_given,
       prescriptions,
+      conversation_messages,
+      voice_actions,
       submitted_diagnosis_id: patient.submittedDiagnosisId,
       diagnosis_was_correct:
         patient.submittedDiagnosisId === null

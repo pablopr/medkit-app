@@ -12,6 +12,8 @@ Vetkit is a voice-first AI consultation simulator for veterinary students, inter
 
 The MVP also includes a Barkibu-style cost view in wrap-up and debrief: the actions you took become an educational bill, an 80% reimbursement estimate, and an approximate remaining owner cost.
 
+Spoken consultation actions are matched through a server-side OpenRouter extraction pass when the case closes. If the vet asks a history question or says they will order a test, give a treatment, diagnose, or prescribe, Vetkit can apply that to the same encounter state as a clicked action and show the match in the wrap-up UI.
+
 Originally built in three days for a clinical-simulation hackathon by a medical-doctor-turned-software-engineer ([@bedriyan](https://github.com/bedriyan)).
 
 ## Barkibu roadmap
@@ -109,6 +111,7 @@ OPENROUTER_GRADER_MODEL=openai/gpt-5.2
 OPENROUTER_TRIAGE_MODEL=openai/gpt-5.2
 OPENROUTER_PATIENT_MODEL=openai/gpt-5.2
 OPENROUTER_VOICE_MODEL=openai/gpt-5.2
+OPENROUTER_VOICE_ACTION_MODEL=openai/gpt-5.2
 OPENROUTER_SITE_URL=http://localhost:5173
 OPENROUTER_APP_NAME=Vetkit
 
@@ -179,6 +182,7 @@ scripts/verify/       # Deterministic data-integrity checks
 | Text patient persona | `OPENROUTER_PATIENT_MODEL` | Right-sidebar typed chat |
 | `vetkit-attending` grading | `OPENROUTER_GRADER_MODEL` | Veterinary clinical reasoning, structured debrief JSON |
 | Triage classifier | `OPENROUTER_TRIAGE_MODEL` | One-shot veterinary urgency classification |
+| Voice action extraction | `OPENROUTER_VOICE_ACTION_MODEL` | Maps spoken consultation actions to clickable case state |
 
 ---
 

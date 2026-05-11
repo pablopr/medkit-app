@@ -20,9 +20,11 @@ import {
   getExistingConversation,
   disposePatientConversation,
 } from '../voice/conversationStore';
+import { extractVoiceClinicalActions } from '../agents/voiceActions';
 import { TopBar } from './primitives';
 import { ExamineOverlay } from './ExamineOverlay';
 import { DockedVoicePanel } from './DockedVoicePanel';
+import type { VoiceActionExtractionSummary, VoiceClinicalAction } from '../game/types';
 
 /** Adaptive FOV: keeps the horizontal FOV near 82° regardless of viewport
  *  aspect, plus a hold-Z (or scroll wheel) "lean in" zoom. */
@@ -179,6 +181,7 @@ export function EncounterScreen() {
   const [voiceActive, setVoiceActive] = useState(true);
   const [pointerLocked, setPointerLocked] = useState(false);
   const [examineOpen, setExamineOpen] = useState(false);
+  const [voiceActionSyncing, setVoiceActionSyncing] = useState(false);
 
   // If the user navigated straight here without a patient set, drop the
   // current selectedCaseId in. Without this the scene shows an empty room.
@@ -314,8 +317,55 @@ export function EncounterScreen() {
     }
   };
 
-  const endConsultation = async () => {
+  const captureConversationSnapshot = () => {
     const conv = getExistingConversation(POLYCLINIC_BED_INDEX);
+    const messages = conv?.getMessages().flatMap((message) => {
+      if (message.role !== 'user' && message.role !== 'assistant') return [];
+      const content = message.content.trim();
+      return content ? [{ role: message.role, content }] : [];
+    }) ?? [];
+    return { conv, messages };
+  };
+
+  const extractActionsBeforeClose = async (
+    messages: ReturnType<typeof captureConversationSnapshot>['messages'],
+  ): Promise<{
+    actions: VoiceClinicalAction[];
+    extraction: VoiceActionExtractionSummary;
+  }> => {
+    const activePatient = store.getState().polyclinic.patient;
+    if (!activePatient || messages.length === 0) {
+      return { actions: [], extraction: { status: 'skipped', extractedAt: Date.now() } };
+    }
+    setVoiceActionSyncing(true);
+    try {
+      const result = await extractVoiceClinicalActions(activePatient, messages);
+      return {
+        actions: result.actions,
+        extraction: {
+          status: result.actions.length > 0 ? 'applied' : 'empty',
+          model: result.model,
+          extractedAt: Date.now(),
+        },
+      };
+    } catch (err) {
+      return {
+        actions: [],
+        extraction: {
+          status: 'failed',
+          error: err instanceof Error ? err.message : String(err),
+          extractedAt: Date.now(),
+        },
+      };
+    } finally {
+      setVoiceActionSyncing(false);
+    }
+  };
+
+  const endConsultation = async () => {
+    if (voiceActionSyncing) return;
+    setVoiceActionSyncing(true);
+    const { conv, messages } = captureConversationSnapshot();
     if (conv) {
       try {
         await conv.sayFarewell();
@@ -325,7 +375,8 @@ export function EncounterScreen() {
     }
     if (document.pointerLockElement) document.exitPointerLock();
     interactionBus.setActive(null);
-    store.finishPolyclinicCase();
+    const { actions, extraction } = await extractActionsBeforeClose(messages);
+    store.finishPolyclinicCase(messages, actions, extraction);
     disposePatientConversation(POLYCLINIC_BED_INDEX);
     store.setScreen('endConfirm');
   };
@@ -395,13 +446,14 @@ export function EncounterScreen() {
           <button
             type="button"
             className="btn-plush ghost"
+            disabled={voiceActionSyncing}
             onClick={(e) => {
               e.stopPropagation();
               endConsultation();
             }}
             style={{ fontSize: 14, padding: '12px 18px', display: 'inline-flex', alignItems: 'center', gap: 8 }}
           >
-            End consultation <LogOut size={17} />
+            {voiceActionSyncing ? 'Syncing voice actions...' : 'End consultation'} <LogOut size={17} />
           </button>
         </div>
 
@@ -448,6 +500,8 @@ export function EncounterScreen() {
           <ExamineOverlay
             onClose={() => setExamineOpen(false)}
             onDispatch={async () => {
+              if (voiceActionSyncing) return;
+              setVoiceActionSyncing(true);
               // 1. Close the modal so the patient's farewell bubble is
               //    visible while the audio plays.
               setExamineOpen(false);
@@ -455,7 +509,7 @@ export function EncounterScreen() {
               // 2. sayFarewell now polls until the agent's TTS actually
               //    finishes (RPC into voice worker → session.say → wait
               //    for status to leave 'speaking'). No extra padding here.
-              const conv = getExistingConversation(POLYCLINIC_BED_INDEX);
+              const { conv, messages } = captureConversationSnapshot();
               if (conv) {
                 try {
                   await conv.sayFarewell();
@@ -467,7 +521,8 @@ export function EncounterScreen() {
               // 3. Tear down THIS patient's conversation + clear the bed.
               if (document.pointerLockElement) document.exitPointerLock();
               interactionBus.setActive(null);
-              store.finishPolyclinicCase();
+              const { actions, extraction } = await extractActionsBeforeClose(messages);
+              store.finishPolyclinicCase(messages, actions, extraction);
               disposePatientConversation(POLYCLINIC_BED_INDEX);
 
               // 5. Auto-load the next patient from the active clinic.
