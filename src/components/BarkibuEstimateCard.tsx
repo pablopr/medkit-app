@@ -44,7 +44,7 @@ export function BarkibuEstimateCard({ estimate, compact = false }: BarkibuEstima
             Barkibu can help with the veterinary bill
           </h2>
           <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink-2)', lineHeight: 1.45 }}>
-            Educational estimate using the consultation actions, tests, treatments, and prescriptions recorded in this case.
+            Educational estimate using the consultation actions recorded manually or matched from voice in this case.
           </div>
         </div>
 

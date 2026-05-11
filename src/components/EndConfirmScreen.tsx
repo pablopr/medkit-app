@@ -3,6 +3,7 @@ import { TopBar } from './primitives';
 import { getCase } from '../data/cases';
 import { estimateBarkibuSupport } from '../data/barkibuEstimate';
 import { BarkibuEstimateCard } from './BarkibuEstimateCard';
+import { VoiceActionReviewCard } from './VoiceActionReviewCard';
 import { store, useGameState, useStore } from '../game/store';
 import type { EndConfirmChecks } from '../game/types';
 
@@ -57,6 +58,8 @@ export function EndConfirmScreen() {
           <div style={{ fontSize: 15, color: 'var(--ink-2)', fontWeight: 500, marginBottom: 22, maxWidth: 560 }}>
             Before debriefing {c.name}, mark only what you actually covered with the owner.
           </div>
+
+          {patient && <VoiceActionReviewCard patient={patient} compact />}
 
           {barkibuEstimate && (
             <div style={{ marginBottom: 24 }}>

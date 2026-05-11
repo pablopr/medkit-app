@@ -1,5 +1,22 @@
 # Release Notes
 
+## 2026-05-11 — AI voice actions for Barkibu cost accuracy
+
+### Shipped
+
+- Added an OpenRouter-backed voice action extractor that maps the consultation transcript to existing clickable actions: history questions, diagnostic tests, treatments, diagnosis, and prescriptions.
+- Applied extracted voice actions to the same closed encounter snapshot used by the Examine overlay, debrief grader, and Barkibu estimate.
+- Added an “AI voice actions” review card in wrap-up and debrief, showing matched actions, evidence quotes, confidence, and whether each action was applied.
+- Updated the debrief request payload so the attending grader sees the transcript and voice-matched actions.
+- Kept Barkibu as a pure cost calculator: it now benefits from the updated encounter state instead of doing its own language parsing.
+
+### Verification
+
+- `npm test`
+- `npm run verify`
+- `npm run build`
+- `python3 -m py_compile backend/server.py`
+
 ## 2026-05-11 — Clinic ambience and 2.5D consultation companions
 
 ### Shipped

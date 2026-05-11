@@ -180,6 +180,34 @@ export type PatientStatus =
   | 'discharged'
   | 'deceased';
 
+export interface ConversationTranscriptMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export type VoiceClinicalActionType = 'history' | 'test' | 'treatment' | 'diagnosis' | 'prescription';
+
+export interface VoiceClinicalAction {
+  type: VoiceClinicalActionType;
+  id?: string;
+  medicationId?: string;
+  label: string;
+  evidence: string;
+  confidence: number;
+  dose?: string;
+  duration?: string;
+  source: 'voice_ai';
+  applied?: boolean;
+  reason?: string;
+}
+
+export interface VoiceActionExtractionSummary {
+  status: 'applied' | 'empty' | 'failed' | 'skipped';
+  model?: string;
+  extractedAt?: number;
+  error?: string;
+}
+
 export interface ActivePatient {
   case: PatientCase;
   bedIndex: number;
@@ -198,6 +226,9 @@ export interface ActivePatient {
     duration: string;
     prescribedAt: number;
   }>;
+  conversationMessages?: ConversationTranscriptMessage[];
+  voiceClinicalActions?: VoiceClinicalAction[];
+  voiceActionExtraction?: VoiceActionExtractionSummary;
 }
 
 export interface PolyclinicSlice {

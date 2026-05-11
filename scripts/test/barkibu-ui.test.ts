@@ -25,7 +25,8 @@ test('empty debrief state names why no Barkibu bill is available', () => {
 test('closed encounters keep a chart for debrief and Barkibu costs', () => {
   const store = readFileSync(join(process.cwd(), 'src', 'game', 'store.ts'), 'utf8');
 
-  assert.match(store, /lastEncounter: snapshot \?\? this\.state\.lastEncounter/);
+  assert.match(store, /lastEncounter: completed \?\? this\.state\.lastEncounter/);
+  assert.match(store, /applyVoiceClinicalActionsToPatient/);
   assert.doesNotMatch(store, /hasEncounterActivity\(snapshot\)/);
 });
 

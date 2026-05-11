@@ -173,6 +173,7 @@ def health():
             "model": GRADER_MODEL,
             "triage_model": TRIAGE_MODEL,
             "patient_model": PATIENT_MODEL,
+            "voice_action_model": VOICE_ACTION_MODEL,
             # Kept for older smoke scripts that used this key name.
             "anthropic_sdk_installed": False,
         },
@@ -201,6 +202,8 @@ def health():
 #
 # Endpoints:
 #   POST /agent/debrief/evaluate               — OpenRouter debrief grader.
+#   POST /agent/voice-actions/extract          — maps trainee speech to
+#                                                existing Examine actions.
 #   POST /agent/bootstrap                      — compatibility no-op for
 #                                                old session-based clients.
 #   POST /agent/sessions                       — compatibility session stub.
@@ -255,6 +258,8 @@ TRIAGE_MODEL = os.environ.get("OPENROUTER_TRIAGE_MODEL", OPENROUTER_DEFAULT_MODE
 TRIAGE_MAX_TOKENS = 512
 PATIENT_MODEL = os.environ.get("OPENROUTER_PATIENT_MODEL", OPENROUTER_DEFAULT_MODEL)
 PATIENT_MAX_TOKENS = 256
+VOICE_ACTION_MODEL = os.environ.get("OPENROUTER_VOICE_ACTION_MODEL", OPENROUTER_DEFAULT_MODEL)
+VOICE_ACTION_MAX_TOKENS = int(os.environ.get("OPENROUTER_VOICE_ACTION_MAX_TOKENS", "1200"))
 OPENROUTER_TIMEOUT_SEC = float(os.environ.get("OPENROUTER_TIMEOUT_SEC", "60"))
 
 MEDKIT_ATTENDING_SYSTEM_PROMPT = (
@@ -1011,6 +1016,230 @@ def run_debrief_evaluation(req: dict[str, Any]) -> dict[str, Any]:
 @app.post("/agent/debrief/evaluate")
 def debrief_evaluate(req: DebriefEvaluateRequest):
     return run_debrief_evaluation(req.request)
+
+
+# ───────────────────────────────────────────────────────────────────────────
+# Voice action extraction — OpenRouter maps transcript to UI actions
+# ───────────────────────────────────────────────────────────────────────────
+
+
+VOICE_ACTION_SYSTEM_PROMPT = (
+    "You convert a veterinary simulator transcript into structured UI actions. "
+    "The trainee is the doctor. The assistant is the pet parent persona. "
+    "Map ONLY explicit trainee commitments to actions that exist in the supplied "
+    "catalog: history questions, tests, treatments, diagnosis options, and medications. Do not "
+    "invent ids, diagnoses, insurance terms, costs, or clinical advice. "
+    "Ignore pet-parent requests unless the trainee accepts them. Ignore "
+    "negated, deferred, hypothetical, or differential-only statements. "
+    "If the trainee asks a history question, match it to catalog.historyQuestions. "
+    "If the trainee says they will order, run, give, start, prescribe, diagnose, "
+    "or send home with a catalog item, emit the closest matching catalog action. "
+    "Return strict JSON only."
+)
+
+VOICE_ACTION_RESPONSE_FORMAT = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "voice_action_extraction",
+        "strict": False,
+        "schema": {
+            "type": "object",
+            "properties": {
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "enum": ["history", "test", "treatment", "diagnosis", "prescription"],
+                            },
+                            "id": {"type": "string"},
+                            "medicationId": {"type": "string"},
+                            "label": {"type": "string"},
+                            "evidence": {"type": "string"},
+                            "confidence": {"type": "number"},
+                            "dose": {"type": "string"},
+                            "duration": {"type": "string"},
+                        },
+                        "required": ["type", "label", "evidence", "confidence"],
+                    },
+                },
+                "ignored": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "evidence": {"type": "string"},
+                            "reason": {"type": "string"},
+                        },
+                    },
+                },
+            },
+            "required": ["actions"],
+        },
+    },
+}
+
+
+class VoiceActionExtractRequest(BaseModel):
+    request: dict[str, Any]
+
+
+def _format_voice_action_user_message(req: dict[str, Any]) -> str:
+    return "\n".join(
+        [
+            "[voice action extraction]",
+            "Return JSON shaped as { actions: [...] }.",
+            "For history/test/treatment/diagnosis actions, set id to an id from the relevant catalog.",
+            "For prescription actions, set medicationId to an id from catalog.medications.",
+            "Use the exact catalog label when possible. Include a short trainee quote as evidence.",
+            "",
+            json.dumps(req, ensure_ascii=False, indent=2),
+        ]
+    )
+
+
+def _catalog_label_map(req: dict[str, Any], key: str) -> dict[str, str]:
+    catalog = req.get("catalog")
+    if not isinstance(catalog, dict):
+        return {}
+    values = catalog.get(key)
+    if not isinstance(values, list):
+        return {}
+    out: dict[str, str] = {}
+    for item in values:
+        if not isinstance(item, dict):
+            continue
+        item_id = item.get("id")
+        label = item.get("label")
+        if isinstance(item_id, str) and isinstance(label, str):
+            out[item_id] = label
+    return out
+
+
+def _clean_short_text(value: Any, fallback: str = "", limit: int = 280) -> str:
+    if not isinstance(value, str):
+        return fallback
+    text = " ".join(value.split())
+    if len(text) > limit:
+        return text[:limit].rstrip() + "..."
+    return text
+
+
+def _clamp_confidence(value: Any) -> float:
+    try:
+        score = float(value)
+    except (TypeError, ValueError):
+        return 0.0
+    return max(0.0, min(1.0, round(score, 2)))
+
+
+def _normalize_voice_actions(parsed: Any, req: dict[str, Any]) -> list[dict[str, Any]]:
+    if not isinstance(parsed, dict):
+        raise HTTPException(
+            status_code=502,
+            detail="voice action model returned JSON that is not an object",
+        )
+    raw_actions = parsed.get("actions")
+    if not isinstance(raw_actions, list):
+        raise HTTPException(
+            status_code=502,
+            detail="voice action model response missing actions array",
+        )
+
+    labels = {
+        "history": _catalog_label_map(req, "historyQuestions"),
+        "test": _catalog_label_map(req, "tests"),
+        "treatment": _catalog_label_map(req, "treatments"),
+        "diagnosis": _catalog_label_map(req, "diagnoses"),
+        "prescription": _catalog_label_map(req, "medications"),
+    }
+
+    actions: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    for item in raw_actions:
+        if not isinstance(item, dict):
+            continue
+        action_type = item.get("type")
+        if action_type not in {"history", "test", "treatment", "diagnosis", "prescription"}:
+            continue
+
+        if action_type == "prescription":
+            action_id = item.get("medicationId") or item.get("medication_id") or item.get("id")
+        else:
+            action_id = item.get("id")
+        if not isinstance(action_id, str) or action_id not in labels[action_type]:
+            continue
+
+        key = (str(action_type), action_id)
+        if key in seen:
+            continue
+        seen.add(key)
+
+        evidence = _clean_short_text(item.get("evidence"))
+        if not evidence:
+            continue
+        action: dict[str, Any] = {
+            "type": action_type,
+            "label": labels[action_type][action_id],
+            "evidence": evidence,
+            "confidence": _clamp_confidence(item.get("confidence")),
+            "source": "voice_ai",
+        }
+        if action_type == "prescription":
+            action["medicationId"] = action_id
+            dose = _clean_short_text(item.get("dose"), limit=80)
+            duration = _clean_short_text(item.get("duration"), limit=80)
+            if dose:
+                action["dose"] = dose
+            if duration:
+                action["duration"] = duration
+        else:
+            action["id"] = action_id
+        actions.append(action)
+    return actions
+
+
+def run_voice_action_extraction(req: dict[str, Any]) -> dict[str, Any]:
+    data = call_openrouter_chat(
+        model=VOICE_ACTION_MODEL,
+        max_tokens=VOICE_ACTION_MAX_TOKENS,
+        temperature=0.0,
+        response_format=VOICE_ACTION_RESPONSE_FORMAT,
+        session_id=f"voice-actions-{req.get('case_id', 'unknown')}",
+        messages=[
+            {"role": "system", "content": VOICE_ACTION_SYSTEM_PROMPT},
+            {"role": "user", "content": _format_voice_action_user_message(req)},
+        ],
+    )
+    raw = _chat_completion_content(data).strip()
+    if not raw:
+        raise HTTPException(
+            status_code=502,
+            detail="voice action model returned empty response",
+        )
+    try:
+        parsed = _parse_json_text(raw)
+    except ValueError as e:
+        _agent_log.warning("voice-actions: malformed JSON from model: %s", raw[:300])
+        raise HTTPException(
+            status_code=502,
+            detail=f"voice action model returned malformed JSON: {e}",
+        )
+    actions = _normalize_voice_actions(parsed, req)
+    _agent_log.info(
+        "voice-actions: case=%s actions=%d model=%s",
+        req.get("case_id"),
+        len(actions),
+        VOICE_ACTION_MODEL,
+    )
+    return {"actions": actions, "model": VOICE_ACTION_MODEL}
+
+
+@app.post("/agent/voice-actions/extract")
+def voice_action_extract(req: VoiceActionExtractRequest):
+    return run_voice_action_extraction(req.request)
 
 
 # ───────────────────────────────────────────────────────────────────────────

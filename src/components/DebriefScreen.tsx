@@ -12,6 +12,7 @@ import { saveEvalHistory, getEvalHistory, type EvalHistoryEntry } from '../data/
 import { POLYCLINIC_DIAGNOSIS_LABELS } from '../data/polyclinicPatients';
 import { estimateBarkibuSupport } from '../data/barkibuEstimate';
 import { BarkibuEstimateCard } from './BarkibuEstimateCard';
+import { VoiceActionReviewCard } from './VoiceActionReviewCard';
 import type {
   CaseEvaluationInput,
   CriterionResult,
@@ -572,6 +573,8 @@ export function DebriefScreen() {
           />
         )}
 
+        {patient && !evaluation && <VoiceActionReviewCard patient={patient} />}
+
         {barkibuEstimate && !evaluation && (
           <BarkibuEstimateCard estimate={barkibuEstimate} />
         )}
@@ -822,6 +825,8 @@ function EvaluationBody({ evaluation, patient, c }: BodyProps) {
         <SectionLabel>ACTIONS YOU TOOK</SectionLabel>
         <ActionChips patient={patient} c={c} />
       </div>
+
+      <VoiceActionReviewCard patient={patient} />
 
       <BarkibuEstimateCard estimate={barkibuEstimate} />
 
